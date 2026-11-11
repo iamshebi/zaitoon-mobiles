@@ -133,19 +133,20 @@ const card = (p, i = 0) => `<article class="c" style="--i:${i}">
 
 /* chrome */
 function chrome() {
-  const x = t(), nav = [['/shop', x.shop, 'shop'], ['/#departments', x.depts], ['/#services', x.services], ['/#visit', x.visit]];
+  const x = t(), nav = [['/shop', x.shop, 'shop'], ['/#departments', x.depts], ['/#services', x2().rep], ['/#visit', x.visit]];
   $('#hd').innerHTML = `<div class="w bar"><a class="logo" href="/"><img src="/logo-dark.png" alt="Zaitoon Mobiles" width="40" height="30"><span><b>ZAITOON</b><small>MOBILES</small></span></a>
-  <nav class="nv">${nav.map(n => `<a href="${n[0]}"${n[2] === PAGE ? ' class="on"' : ''}>${n[1]}</a>`).join('')}</nav>
-  <div class="hr"><button class="lang" id="lang">${L === 'ar' ? 'EN' : 'ع'}</button><a class="btn dk sm" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}<span>${x.msg}</span></a><button class="burger" id="bg" aria-label="Menu"><i></i></button></div></div>
+  <nav class="nv">${nav.map((n, i) => `<a href="${n[0]}"${i ? '' : ' id="nshop" aria-haspopup="true"'}${n[2] === PAGE ? ' class="on"' : ''}>${n[1]}${i ? '' : '<i class="cv"></i>'}</a>`).join('')}</nav>
+  <div class="hr"><button class="sbtn" id="sbtn" aria-label="${x2().srch}">${ico('search', 1.6)}<span>${x2().srch}</span><kbd>/</kbd></button><button class="lang" id="lang">${L === 'ar' ? 'EN' : 'ع'}</button><a class="btn dk sm" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}<span>${x.msg}</span></a><button class="burger" id="bg" aria-label="Menu"><i></i></button></div></div>
 `;
   let mn = $('#mnav'); if (!mn) { mn = document.createElement('div'); mn.id = 'mnav'; mn.className = 'mnav'; document.body.insertBefore(mn, $('#app')) }
-  mn.innerHTML = `${nav.map(n => `<a href="${n[0]}">${n[1]}</a>`).join('')}<a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.msg}</a>`;
+  mn.innerHTML = `<button class="msrch" data-os>${ico('search', 1.6)}<span>${x2().srchP}</span></button>${nav.map(n => `<a href="${n[0]}">${n[1]}</a>`).join('')}<a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.msg}</a>`;
   document.body.classList.remove('mo');
   $('#ft').innerHTML = `<div class="w"><div class="fg">
    <div><a class="logo" href="/"><img src="/logo-dark.png" alt="" width="40" height="30"><span><b>ZAITOON</b><small>MOBILES</small></span></a><p class="big serif">${x.fBig}</p></div>
    <div><h5>${x.fShop}</h5>${D.departments.slice(0, 6).map(d => `<a href="/shop?d=${d.id}">${d[L]}</a>`).join('')}</div>
    <div><h5>${x.fStore}</h5><a href="/#services">${x.services}</a><a href="/#visit">${x.visit}</a><a href="${MAP}" target="_blank" rel="noopener">${x.dir}</a><a href="mailto:${MAIL}">${x.mail}</a></div>
    <div><h5>${x.follow}</h5><a href="${IG}" target="_blank" rel="noopener">${x.ig}</a><a href="${SC}" target="_blank" rel="noopener">${x.sc}</a><a href="${CH}" target="_blank" rel="noopener">${x.ch}</a><a href="${wa(x.waHi)}" target="_blank" rel="noopener" dir="ltr">+971 55 540 0551</a></div></div>
+   <div class="fpay"><span>${x2().payFt}</span>${payLogos()}</div>
    <div class="huge">Zaitoon</div>
    <div class="fb"><span>© ${new Date().getFullYear()} ${x.brand} · ${x.city}</span><span>${x.rights}</span></div></div>`;
   $('#lang').onclick = () => { L = L === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('lang', L) } catch (e) { } swap(render) };
@@ -192,6 +193,7 @@ function home() {
     <div class="sh"><div><span class="eyb rv">${x.sigL}</span><h2 class="rv" style="--d:.08s">${x.sigH}</h2></div><div class="sbt rv"><button data-s="-1" aria-label="Previous">${ico('left', 1.5)}</button><button data-s="1" aria-label="Next">${ico('right', 1.5)}</button></div></div>
     <div class="scr rv" id="scr">${pick(sig).map((p, i) => card(p, i)).join('')}</div>
   </div></section>
+  ${payBand()}
 
   <section class="sec"><div class="w">
     <div class="sh"><div><span class="eyb rv">${x.phL}</span><h2 class="rv" style="--d:.08s">${x.phH}</h2></div><a class="lk rv" href="/shop?c=0">${x.phAll} ${ar()}</a></div>
@@ -202,11 +204,7 @@ function home() {
     <div class="pr" style="margin-top:28px">${x.pr.map((r, i) => `<div class="rv" style="--d:${i * .08}s"><span class="k">0${i + 1}</span><h4>${r[0]}</h4><p>${r[1]}</p></div>`).join('')}</div>
   </div></section>
 
-  <div class="w" id="services"><div class="band"><div class="svc">
-    <div><span class="eyb rv">${x.svL}</span><h2 class="rv" style="margin-top:18px">${x.svH}</h2><p class="rv">${x.svP}</p>
-      <div class="row rv"><a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waS(x.services))}">${WAI}${x.ask}</a><a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div></div>
-    <ul class="svl">${x.sv.map((s, i) => `<li class="rv" style="--d:${i * .06}s"><div><b>${s[0]}</b><small>${s[1]}</small></div><a target="_blank" rel="noopener" href="${wa(x.waS(s[0]))}" aria-label="${esc(s[0])}">${ico('arrow', 1.5)}</a></li>`).join('')}</ul>
-  </div></div></div>
+  ${workshop()}
 
   <section class="sec" id="visit"><div class="w">
     <div class="sh"><div><span class="eyb rv">${x.viL}</span><h2 class="rv" style="--d:.08s">${x.viH}</h2></div><p class="rv">${x.viP}</p></div>
@@ -258,7 +256,7 @@ function title() {
 function shop() {
   const x = t();
   return `<div class="w"><div class="shead"><div class="crumb rv in"><a href="/">${x.home}</a><span>/</span><a href="/shop">${x.shop}</a><span id="crb"></span></div>
-    <h1 id="sht" class="rv in">${esc(title())}</h1><div class="sub"><p class="rv in" style="--d:.1s">${x.shopP}</p></div></div>
+    <h1 id="sht" class="rv in">${esc(title())}</h1><div class="sub"><p class="rv in" style="--d:.1s">${x.shopP}</p><div class="ppay rv in" style="--d:.16s">${x2().payIn} ${payLogos()}</div></div></div>
   <div class="shop"><aside class="side"><h6>${x.depts}</h6><ul class="dl" id="dl"></ul></aside>
   <div><div class="dchips" id="dch"></div>
     <div class="tb"><label class="q">${ico('search', 1.6)}<input id="q" type="search" autocomplete="off" placeholder="${esc(x.search)}" value="${esc(S.q)}"></label>
@@ -321,6 +319,7 @@ function product() {
       <h1>${lines([esc(p.n)])}</h1>
       ${p.d ? `<p class="det rv in" style="--d:.25s">${esc(p.d)}</p>` : ''}
       <div class="row rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a><a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>
+      <div class="ppay rv in" style="--d:.36s">${x2().payIn} ${payLogos()}</div>
       <div class="note rv in" style="--d:.4s">${ico('info', 1.5)}<span>${x.pNote}</span></div>
       <ul class="spec rv in" style="--d:.48s">
         ${p.b ? `<li><span>${x.pBrand}</span><a href="/shop?b=${encodeURIComponent(p.b)}">${esc(p.b)}</a></li>` : ''}
@@ -341,7 +340,9 @@ function render() {
   document.documentElement.lang = L; document.documentElement.dir = L === 'ar' ? 'rtl' : 'ltr';
   chrome();
   $('#app').innerHTML = ({ home, shop, product }[PAGE] || home)();
-  if (PAGE === 'home') homeInit();
+  megaInit();
+  $('#sbtn').onclick = openS;
+  if (PAGE === 'home') { homeInit(); repList(0); $$('.rtabs button').forEach(b => b.onclick = () => { const l = $('#rlist'); l.classList.remove('sw'); void l.offsetWidth; l.classList.add('sw'); repList(+b.dataset.rg) }) }
   if (PAGE === 'shop') shopInit();
   reveal();
 }
@@ -351,3 +352,178 @@ fetch('/catalog.json').then(r => r.json()).then(j => {
   D = j; render(); hd();
   if (location.hash) { const el = document.querySelector(location.hash); if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 400) }
 });
+
+/* ================= v2: search, mega menu, workshop, pay-later ================= */
+const X = {
+en: {
+  rep: 'Repair', srch: 'Search', srchP: 'Search products, brands, models…', srchPop: 'Browse departments', srchAll: n => `See all ${n} results`, srchNone: 'No matches yet. Try a brand or model, or ask us on WhatsApp.', srchCats: 'Categories', srchProd: 'Products', close: 'Close',
+  mmAll: c => `View all ${c}`, mmFeat: 'Featured',
+  wkL: 'The Zaitoon workshop', wkH: 'Expert repairs. <em>Every device.</em>', wkP: 'Chip-level and software specialists for phones, tablets, laptops, PCs and PlayStation, right here in our shop in Ras Al Khaimah.',
+  fix: 'Get this fixed', cred: 'Photos',
+  rpL: 'Repair menu', rpH: 'Hardware & software. <em>Fixed properly.</em>', rpP: 'Choose your device, then tap the service you need. We’ll reply on WhatsApp with what it takes and the price.',
+  bnL: 'Pay later, in store', bnH: 'Buy now. <em>Pay later.</em>', bnP: 'Split your purchase into easy instalments with Tabby or Tamara at our counter. Just ask when you pay.', bnS: 'Subject to approval by Tabby and Tamara.',
+  payIn: 'Pay in instalments in store with', payFt: 'Pay later in store',
+  waR: (s, g) => `Hello Al Zaitoon 👋\nI need a repair: ${s}${g ? ` (${g})` : ''}\nMy device model is: `
+},
+ar: {
+  rep: 'الصيانة', srch: 'بحث', srchP: 'ابحث عن منتج أو ماركة أو موديل…', srchPop: 'تصفح الأقسام', srchAll: n => `عرض كل النتائج (${n})`, srchNone: 'لا توجد نتائج. جرّب اسم ماركة أو موديل، أو اسألنا على واتساب.', srchCats: 'الفئات', srchProd: 'المنتجات', close: 'إغلاق',
+  mmAll: c => `عرض كل ${c}`, mmFeat: 'مميز',
+  wkL: 'ورشة الزيتون', wkH: 'صيانة احترافية. <em>لكل جهاز.</em>', wkP: 'متخصصون في صيانة القطع الدقيقة والبرمجيات للهواتف والأجهزة اللوحية واللابتوبات والكمبيوتر وبلايستيشن، داخل محلنا في رأس الخيمة.',
+  fix: 'أصلحه الآن', cred: 'الصور',
+  rpL: 'قائمة الصيانة', rpH: 'قطع وبرمجيات. <em>إصلاح صحيح.</em>', rpP: 'اختر جهازك ثم اضغط على الخدمة. نرد عليك على واتساب بالحل والسعر.',
+  bnL: 'ادفع لاحقاً في المحل', bnH: 'اشترِ الآن. <em>وادفع لاحقاً.</em>', bnP: 'قسّط مشترياتك بسهولة مع تابي أو تمارا عند الدفع في المحل. فقط اسألنا.', bnS: 'خاضع لموافقة تابي وتمارا.',
+  payIn: 'قسّط مشترياتك في المحل مع', payFt: 'ادفع لاحقاً في المحل',
+  waR: (s, g) => `مرحباً الزيتون 👋\nأحتاج صيانة: ${s}${g ? ` (${g})` : ''}\nموديل جهازي: `
+}};
+const x2 = () => X[L];
+const US = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=72`;
+const TILES = [
+  { img: US('1550041473-d296a3a8a18a', 900, 1200), en: ['Screens & LCD', 'Cracked glass, LCD & OLED displays, lines and dead touch on phones and tablets'], ar: ['الشاشات و LCD', 'زجاج مكسور، شاشات LCD و OLED، خطوط وتعطل اللمس للهواتف والأجهزة اللوحية'] },
+  { img: US('1640955785023-1854685dae05', 1200, 800), en: ['Chip-level board repair', 'No power, no charging, short circuits and IC work on phones, laptops and consoles'], ar: ['صيانة اللوحة الأم بدقة', 'لا يعمل، لا يشحن، تماس كهربائي وصيانة الشرائح للهواتف واللابتوبات والأجهزة'] },
+  { img: US('1622297845775-5ff3fef71d13', 900, 1000), en: ['PlayStation & consoles', 'HDMI port, overheating, no power, disc drive and controller drift'], ar: ['بلايستيشن وأجهزة الألعاب', 'منفذ HDMI، ارتفاع الحرارة، لا يعمل، مشغل الأقراص وانحراف ذراع التحكم'] },
+  { img: US('1746005514011-ea00280f3b6e', 1200, 900), en: ['Batteries, ports & cameras', 'Battery replacement, charging ports, speakers, mics and cameras'], ar: ['البطاريات والمنافذ والكاميرات', 'استبدال البطارية، منافذ الشحن، السماعات، الميكروفون والكاميرات'] },
+  { img: US('1721333089073-215a56fd710c', 900, 1100), en: ['Laptops & PCs', 'LCD & display, keyboard, battery, motherboard, SSD & RAM upgrades'], ar: ['اللابتوب والكمبيوتر', 'الشاشة، لوحة المفاتيح، البطارية، اللوحة الأم، ترقية SSD و RAM'] },
+  { img: US('1587614382346-4ec70e388b28', 1200, 800), en: ['Windows & software', 'Windows installation & activation, data recovery, virus removal and setup'], ar: ['ويندوز والبرمجيات', 'تثبيت وتفعيل ويندوز، استعادة البيانات، إزالة الفيروسات والإعداد'] }
+];
+const CREDITS = [['Clint Bustrillos', 'clintbustrillos'], ['Vishnu Mohanan', 'vishnumaiea'], ['Nik', 'helloimnik'], ['Fotografia Lui Vlad', 'fotografialuivlad'], ['Samsung Memory', 'samsungmemory'], ['Windows', 'windows']];
+const REP = [
+  { i: 'phone', en: 'Phones & tablets', ar: 'الهواتف والأجهزة اللوحية', s: [
+    ['Screen & LCD replacement', 'Cracked glass, lines, dead touch, OLED', 'استبدال الشاشة و LCD', 'زجاج مكسور، خطوط، تعطل اللمس، OLED'],
+    ['Chip-level board repair', 'No power, no charging, short circuits', 'صيانة اللوحة الأم بدقة', 'لا يعمل، لا يشحن، تماس كهربائي'],
+    ['Battery replacement', 'Fast drain, swelling, sudden shutdowns', 'استبدال البطارية', 'نفاد سريع، انتفاخ، إطفاء مفاجئ'],
+    ['Charging port, speaker & mic', 'Loose port, no sound, muffled calls', 'منفذ الشحن والسماعة والميكروفون', 'منفذ مرتخٍ، لا يوجد صوت، مكالمات غير واضحة'],
+    ['Camera & back glass', 'Blurry camera, cracked lens or back', 'الكاميرا والزجاج الخلفي', 'كاميرا غير واضحة، عدسة أو ظهر مكسور'],
+    ['Water damage recovery', 'Cleaning and board restoration', 'إصلاح أضرار المياه', 'تنظيف واستعادة اللوحة'],
+    ['Software & updates', 'Stuck on logo, restarts, restore', 'البرمجيات والتحديثات', 'متوقف على الشعار، إعادة تشغيل، استعادة']] },
+  { i: 'laptop', en: 'Laptops & PCs', ar: 'اللابتوب والكمبيوتر', s: [
+    ['Chip-level motherboard repair', 'No power, no display, short circuits', 'صيانة اللوحة الأم بدقة', 'لا يعمل، لا توجد صورة، تماس كهربائي'],
+    ['LCD & display replacement', 'Cracked, flickering or dark screens', 'استبدال الشاشة', 'شاشة مكسورة أو ترمش أو مظلمة'],
+    ['Keyboard & touchpad', 'Dead keys, spills, worn keyboards', 'لوحة المفاتيح ولوحة اللمس', 'أزرار لا تعمل، انسكاب سوائل'],
+    ['Battery & charging', 'Not charging, short battery life', 'البطارية والشحن', 'لا يشحن، عمر بطارية قصير'],
+    ['SSD & RAM upgrades', 'Faster boot, more storage and memory', 'ترقية SSD و RAM', 'تشغيل أسرع، مساحة وذاكرة أكبر'],
+    ['Overheating & cleaning', 'Fan service, thermal paste, dust', 'ارتفاع الحرارة والتنظيف', 'صيانة المروحة، المعجون الحراري، الغبار'],
+    ['Desktop PC repair & builds', 'Diagnosis, parts and custom builds', 'صيانة وتجميع الكمبيوتر المكتبي', 'فحص، قطع غيار وتجميع حسب الطلب']] },
+  { i: 'game', en: 'PlayStation & consoles', ar: 'بلايستيشن وأجهزة الألعاب', s: [
+    ['HDMI port replacement', 'No picture, loose or broken port', 'استبدال منفذ HDMI', 'لا توجد صورة، منفذ مرتخٍ أو مكسور'],
+    ['Overheating & cleaning', 'Loud fan, shutdowns, thermal service', 'ارتفاع الحرارة والتنظيف', 'مروحة عالية، إطفاء، صيانة حرارية'],
+    ['No power & board repair', 'Console won’t turn on', 'لا يعمل وصيانة اللوحة', 'الجهاز لا يعمل'],
+    ['Disc drive repair', 'Won’t read or eject discs', 'صيانة مشغل الأقراص', 'لا يقرأ أو لا يُخرج الأقراص'],
+    ['Controller repair', 'Stick drift, buttons, charging', 'صيانة ذراع التحكم', 'انحراف العصا، الأزرار، الشحن']] },
+  { i: 'key', en: 'Windows & software', ar: 'ويندوز والبرمجيات', s: [
+    ['Windows installation & activation', 'Clean install, genuine activation', 'تثبيت وتفعيل ويندوز', 'تثبيت نظيف وتفعيل أصلي'],
+    ['Software installation', 'Office, drivers and everyday apps', 'تثبيت البرامج', 'أوفيس، التعريفات والبرامج اليومية'],
+    ['Data backup & recovery', 'Photos, files and contacts', 'نسخ واستعادة البيانات', 'الصور والملفات وجهات الاتصال'],
+    ['Virus & malware removal', 'Clean-up and security setup', 'إزالة الفيروسات', 'تنظيف وإعداد الحماية'],
+    ['Speed-up & optimisation', 'Slow PC and phone tune-up', 'تسريع وتحسين الأداء', 'تسريع الكمبيوتر والهاتف البطيء'],
+    ['Phone & laptop setup', 'Accounts, email, transfer to new device', 'إعداد الهاتف واللابتوب', 'الحسابات، البريد، النقل لجهاز جديد']] }
+];
+const TABBY = '/pay/tabby.svg', TAMARA = 'https://cdn.tamara.co/assets/png/tamara-logo-badge-en.png';
+const payLogos = cls => `<span class="pay ${cls || ''}"><img class="p-tb" src="${TABBY}" alt="tabby" width="76" height="30"><span class="p-tm"><img src="${TAMARA}" alt="tamara" height="30" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('tx');this.remove()"><b>tamara</b></span></span>`;
+
+function workshop() {
+  const x = x2();
+  return `<section class="sec" id="services"><div class="w">
+    <div class="sh"><div><span class="eyb rv">${x.wkL}</span><h2 class="rv" style="--d:.08s">${x.wkH}</h2></div><p class="rv" style="--d:.16s">${x.wkP}</p></div>
+    <div class="wk">${TILES.map((tl, i) => `<a class="wt rv wt${i + 1}" style="--d:${(i % 3) * .08}s" target="_blank" rel="noopener" href="${wa(x.waR(tl.en[0]))}"><img src="${tl.img}" alt="${esc(tl[L][0])}" loading="lazy"><div class="wc"><span class="k">0${i + 1}</span><h3>${tl[L][0]}</h3><p>${tl[L][1]}</p><span class="wfix">${WAI}${x.fix}</span></div></a>`).join('')}</div>
+    <p class="cred">${x.cred}: ${CREDITS.map(c => `<a href="https://unsplash.com/@${c[1]}?utm_source=zaitoon_mobiles&utm_medium=referral" target="_blank" rel="noopener">${c[0]}</a>`).join(', ')} / <a href="https://unsplash.com/?utm_source=zaitoon_mobiles&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a></p>
+  </div></section>
+  <div class="w"><div class="band" id="repair"><div class="svc">
+    <div><span class="eyb rv">${x.rpL}</span><h2 class="rv" style="margin-top:18px">${x.rpH}</h2><p class="rv">${x.rpP}</p>
+      <div class="row rv"><a class="btn gd" target="_blank" rel="noopener" href="${wa(t().waS(t().services))}">${WAI}${t().ask}</a><a class="btn lt" href="tel:${TEL}">${t().callUs}</a></div></div>
+    <div><div class="rtabs rv" role="tablist">${REP.map((g, i) => `<button role="tab" data-rg="${i}" class="${i ? '' : 'on'}">${ico(g.i, 1.4)}<span>${g[L]}</span></button>`).join('')}</div><ul class="svl" id="rlist"></ul></div>
+  </div></div></div>`;
+}
+function repList(i) {
+  const g = REP[i], ae = L === 'ar';
+  $('#rlist').innerHTML = g.s.map((s, k) => `<li style="--i:${k}"><div><b>${ae ? s[2] : s[0]}</b><small>${ae ? s[3] : s[1]}</small></div><a target="_blank" rel="noopener" href="${wa(x2().waR(s[0], g.en))}" aria-label="${esc(ae ? s[2] : s[0])}">${ico('arrow', 1.5)}</a></li>`).join('');
+  $$('.rtabs button').forEach(b => b.classList.toggle('on', +b.dataset.rg === i));
+}
+function payBand() {
+  const x = x2();
+  return `<section class="sec"><div class="w"><div class="bnpl rv">
+    <div><span class="eyb">${x.bnL}</span><h2>${x.bnH}</h2><p>${x.bnP}</p><small>${x.bnS}</small></div>
+    <div class="bnl"><div class="bnc"><img src="${TABBY}" alt="tabby" width="170" height="67"></div><div class="bnc"><span class="p-tm big"><img src="${TAMARA}" alt="tamara" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('tx');this.remove()"><b>tamara</b></span></div></div>
+  </div></div></section>`;
+}
+
+/* search overlay */
+function scoreQ(p, q) {
+  const n = full(p).toLowerCase(), c = D.categories[p.c];
+  let s = 0; if (n.startsWith(q) || p.n.toLowerCase().startsWith(q)) s += 6; if (p.n.toLowerCase().includes(q)) s += 4; if (p.c <= 2) s += 5; if (p.i) s += 1;
+  return s;
+}
+function findP(q) {
+  const ws = q.toLowerCase().split(/\s+/).filter(Boolean); if (!ws.length) return [];
+  const hay = p => (p.b + ' ' + p.n + ' ' + (p.d || '') + ' ' + D.categories[p.c].en + ' ' + D.categories[p.c].ar + ' ' + deptOf(p.c).en).toLowerCase();
+  const ql = q.toLowerCase().trim();
+  return D.products.filter(p => ws.every(w => hay(p).includes(w))).sort((a, b) => scoreQ(b, ql) - scoreQ(a, ql));
+}
+let SI = -1;
+function searchInit() {
+  let so = $('#so');
+  if (!so) { so = document.createElement('div'); so.id = 'so'; so.className = 'so'; so.setAttribute('role', 'dialog'); so.setAttribute('aria-modal', 'true'); document.body.appendChild(so) }
+  const x = x2();
+  so.innerHTML = `<div class="so-bg" data-sx></div><div class="so-p"><div class="w"><div class="so-bar">${ico('search', 1.6)}<input id="sq" type="search" autocomplete="off" enterkeyhint="search" placeholder="${esc(x.srchP)}" aria-label="${esc(x.srch)}"><button class="so-x" data-sx aria-label="${x.close}">${ico('left', 0)}<span>Esc</span></button></div><div class="sr" id="sr"></div></div></div>`;
+  const q = $('#sq');
+  q.oninput = () => { SI = -1; drawS() };
+  q.onkeydown = e => {
+    const rows = $$('#sr [data-r]');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); SI = Math.max(0, Math.min(rows.length - 1, SI + (e.key === 'ArrowDown' ? 1 : -1))); rows.forEach((r, i) => r.classList.toggle('act', i === SI)); rows[SI] && rows[SI].scrollIntoView({ block: 'nearest' }) }
+    if (e.key === 'Enter') { e.preventDefault(); const r = rows[SI]; location.href = r ? r.href : '/shop?q=' + encodeURIComponent(q.value.trim()) }
+  };
+  so.onclick = e => { if (e.target.closest('[data-sx]')) closeS() };
+}
+function drawS() {
+  const x = x2(), qv = $('#sq').value.trim(), out = $('#sr');
+  if (!qv) {
+    out.innerHTML = `<h6>${x.srchPop}</h6><div class="sr-ch">${D.departments.map(d => `<a href="/shop?d=${d.id}">${ico(DI[d.id], 1.4)}${d[L]}</a>`).join('')}</div>`;
+    return;
+  }
+  const r = findP(qv), ql = qv.toLowerCase();
+  const cats = D.categories.map((c, i) => ({ c, i })).filter(o => (o.c.en + ' ' + o.c.ar).toLowerCase().includes(ql)).slice(0, 6);
+  const hl = s => esc(s).replace(new RegExp('(' + qv.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>');
+  out.innerHTML = (cats.length ? `<h6>${x.srchCats}</h6><div class="sr-ch">${cats.map(o => `<a href="/shop?c=${o.i}">${ico(CI[o.i], 1.4)}${o.c[L]}</a>`).join('')}</div>` : '') +
+    (r.length ? `<h6>${x.srchProd}</h6><div class="sr-l">${r.slice(0, 8).map(p => `<a data-r href="/product?id=${encodeURIComponent(p.id)}"><span class="sr-im">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.3)}</span><span class="sr-t"><b>${hl(p.n)}</b><small>${esc(p.b || '')}${p.b ? ' · ' : ''}${esc(catN(p.c))}</small></span>${ico('arrow', 1.5)}</a>`).join('')}</div>
+      <a class="btn dk sr-all" href="/shop?q=${encodeURIComponent(qv)}">${x.srchAll(r.length)} ${ar()}</a>`
+      : `<div class="sr-no">${x.srchNone}<a class="btn gd sm" target="_blank" rel="noopener" href="${wa(t().hello + qv)}">${WAI}${t().ask}</a></div>`);
+}
+function openS() { searchInit(); document.body.classList.add('so-on'); document.body.classList.remove('mo'); drawS(); setTimeout(() => $('#sq').focus(), 60) }
+function closeS() { document.body.classList.remove('so-on') }
+document.addEventListener('click', e => { if (e.target.closest('[data-os]')) { e.preventDefault(); openS() } });
+addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeS();
+  const tag = (e.target.tagName || '').toLowerCase();
+  if ((e.key === '/' && tag !== 'input' && tag !== 'textarea') || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')) { e.preventDefault(); openS() }
+});
+
+/* desktop mega menu */
+let MD = 0, MC = -1, mmT;
+const mmOK = () => matchMedia('(min-width:1081px) and (hover:hover)').matches;
+function megaInit() {
+  const hd = $('#hd'); let mg = $('#mega');
+  if (!mg) { mg = document.createElement('div'); mg.id = 'mega'; mg.className = 'mega'; hd.appendChild(mg) }
+  mg.innerHTML = `<div class="w mg"><div class="mgd" id="mgd"></div><div class="mgc" id="mgc"></div><div class="mgp" id="mgp"></div></div>`;
+  const open = () => { if (!mmOK()) return; clearTimeout(mmT); if (!hd.classList.contains('mm')) { megaDraw(); hd.classList.add('mm') } };
+  const close = () => { clearTimeout(mmT); mmT = setTimeout(() => hd.classList.remove('mm'), 160) };
+  const trg = $('#nshop');
+  trg.addEventListener('mouseenter', open); trg.addEventListener('focus', open); trg.addEventListener('mouseleave', close);
+  mg.addEventListener('mouseenter', () => clearTimeout(mmT)); mg.addEventListener('mouseleave', close);
+  mg.addEventListener('mouseover', e => {
+    const d = e.target.closest('[data-md]'), c = e.target.closest('[data-mc]');
+    if (d && +d.dataset.md !== MD) { MD = +d.dataset.md; MC = -1; megaDraw() }
+    else if (c && +c.dataset.mc !== MC) { MC = +c.dataset.mc; megaDraw(true) }
+  });
+  addEventListener('scroll', () => hd.classList.remove('mm'), { passive: true });
+}
+function megaDraw(onlyP) {
+  const x = x2(), d = D.departments[MD], cnt = f => D.products.filter(f).length;
+  if (!onlyP) {
+    $('#mgd').innerHTML = D.departments.map((dd, i) => `<a href="/shop?d=${dd.id}" data-md="${i}" class="${i === MD ? 'on' : ''}">${ico(DI[dd.id], 1.4)}<span>${dd[L]}</span><sup>${cnt(p => dd.cats.includes(p.c))}</sup></a>`).join('');
+    $('#mgc').innerHTML = `<h6>${d[L]}</h6>` + d.cats.map(c => `<a href="/shop?c=${c}" data-mc="${c}">${catN(c)}<sup>${cnt(p => p.c === c)}</sup></a>`).join('') + `<a class="lk" href="/shop?d=${d.id}">${x.mmAll(d[L])} ${ar()}</a>`;
+  }
+  $$('#mgc [data-mc]').forEach(a => a.classList.toggle('on', +a.dataset.mc === MC));
+  const pool = D.products.filter(p => MC >= 0 ? p.c === MC : d.cats.includes(p.c)).sort((a, b) => (b.i ? 1 : 0) - (a.i ? 1 : 0)).slice(0, 6);
+  const ttl = MC >= 0 ? catN(MC) : d[L];
+  $('#mgp').innerHTML = `<h6>${x.mmFeat} · ${ttl}</h6><div class="mgg">${pool.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${i}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b></span></a>`).join('')}</div>
+    <a class="btn dk sm" href="${MC >= 0 ? '/shop?c=' + MC : '/shop?d=' + d.id}">${x.mmAll(ttl)} ${ar()}</a>`;
+}
