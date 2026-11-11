@@ -174,7 +174,7 @@ function home() {
       <div class="row rv" style="--d:.62s"><a class="btn dk" href="/shop">${x.explore} ${ar()}</a><a class="btn lt" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.ask}</a></div>
       <div class="stats rv" style="--d:.75s"><div><b data-n="${P_.length}">0</b><small>${x.st[0]}</small></div><div><b data-n="${D.categories.length}">0</b><small>${x.st[1]}</small></div><div><b data-n="${brands.size}">0</b><small>${x.st[2]}</small></div></div>
     </div>
-    <div class="stage rv" style="--d:.3s" id="stage"><div class="ring"></div><div class="orb"></div>
+    <div class="stage rv" style="--d:.3s" id="stage"><div class="halo"><div class="ring"></div><div class="orb"></div></div>
       ${hero.map((p, i) => `<a href="/product?id=${p.id}" class="fl f${i + 1}" data-depth="${[18, -26, 22, -14][i]}"><div><img src="/products/${p.i}" alt="${esc(full(p))}"></div></a>`).join('')}
       <div class="tag"><i></i>${x.live}</div></div>
   </div></section>
