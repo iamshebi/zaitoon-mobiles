@@ -137,7 +137,10 @@ function chrome() {
   $('#hd').innerHTML = `<div class="w bar"><a class="logo" href="/"><img src="/logo-dark.png" alt="Zaitoon Mobiles" width="40" height="30"><span><b>ZAITOON</b><small>MOBILES</small></span></a>
   <nav class="nv">${nav.map(n => `<a href="${n[0]}"${n[2] === PAGE ? ' class="on"' : ''}>${n[1]}</a>`).join('')}</nav>
   <div class="hr"><button class="lang" id="lang">${L === 'ar' ? 'EN' : 'ع'}</button><a class="btn dk sm" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}<span>${x.msg}</span></a><button class="burger" id="bg" aria-label="Menu"><i></i></button></div></div>
-  <div class="mnav">${nav.map(n => `<a href="${n[0]}">${n[1]}</a>`).join('')}<a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.msg}</a></div>`;
+`;
+  let mn = $('#mnav'); if (!mn) { mn = document.createElement('div'); mn.id = 'mnav'; mn.className = 'mnav'; document.body.insertBefore(mn, $('#app')) }
+  mn.innerHTML = `${nav.map(n => `<a href="${n[0]}">${n[1]}</a>`).join('')}<a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.msg}</a>`;
+  document.body.classList.remove('mo');
   $('#ft').innerHTML = `<div class="w"><div class="fg">
    <div><a class="logo" href="/"><img src="/logo-dark.png" alt="" width="40" height="30"><span><b>ZAITOON</b><small>MOBILES</small></span></a><p class="big serif">${x.fBig}</p></div>
    <div><h5>${x.fShop}</h5>${D.departments.slice(0, 6).map(d => `<a href="/shop?d=${d.id}">${d[L]}</a>`).join('')}</div>
@@ -146,7 +149,8 @@ function chrome() {
    <div class="huge">Zaitoon</div>
    <div class="fb"><span>© ${new Date().getFullYear()} ${x.brand} · ${x.city}</span><span>${x.rights}</span></div></div>`;
   $('#lang').onclick = () => { L = L === 'ar' ? 'en' : 'ar'; try { localStorage.setItem('lang', L) } catch (e) { } swap(render) };
-  $('#bg').onclick = () => document.body.classList.toggle('mo');
+  $('#bg').onclick = () => { document.body.classList.toggle('mo'); $('#bg').setAttribute('aria-expanded', document.body.classList.contains('mo')) };
+  addEventListener('keydown', e => { if (e.key === 'Escape') document.body.classList.remove('mo') });
   $$('.mnav a').forEach(a => a.addEventListener('click', () => document.body.classList.remove('mo')));
 }
 const swap = fn => document.startViewTransition ? document.startViewTransition(fn) : fn();

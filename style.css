@@ -16,7 +16,7 @@ img{display:block;max-width:100%}
 ::selection{background:var(--goldl)}
 .w{max-width:1320px;margin:0 auto;padding:0 clamp(20px,4vw,48px)}
 .serif{font-family:var(--serif);font-weight:400}
-em{font-style:normal;color:var(--mut)}
+em{font-style:normal;color:var(--gold2)}
 
 /* intro curtain */
 .curtain{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center;pointer-events:none;animation:cOut 1s var(--e2) .55s forwards}
@@ -61,8 +61,12 @@ nav.nv a.on::after{content:"";position:absolute;left:50%;bottom:3px;width:4px;he
 body.mo .burger i{background:transparent}
 body.mo .burger i::before{top:0;transform:rotate(45deg)}
 body.mo .burger i::after{top:0;transform:rotate(-45deg)}
-.mnav{position:fixed;inset:76px 0 0;z-index:39;background:var(--bg);padding:24px clamp(20px,4vw,48px);display:flex;flex-direction:column;gap:2px;clip-path:inset(0 0 100% 0);transition:clip-path .7s var(--e2);overflow:auto}
-body.mo .mnav{clip-path:inset(0)}
+.mnav{position:fixed;left:0;right:0;top:76px;bottom:0;height:calc(100dvh - 76px);z-index:39;visibility:hidden;background:var(--bg);padding:24px clamp(20px,4vw,48px);display:flex;flex-direction:column;gap:2px;clip-path:inset(0 0 100% 0);transition:clip-path .7s var(--e2);overflow:auto}
+body.mo .mnav{clip-path:inset(0);visibility:visible}
+body.mo{overflow:hidden}
+body.mo header{background:var(--bg);box-shadow:0 1px 0 var(--line)}
+.mnav{transition:clip-path .7s var(--e2),visibility 0s linear .7s}
+body.mo .mnav{transition:clip-path .7s var(--e2),visibility 0s}
 .mnav a{font-family:var(--serif);font-size:36px;line-height:1.25;padding:6px 0;border-bottom:1px solid var(--line);opacity:0;transform:translateY(20px);transition:.6s var(--e)}
 body.mo .mnav a{opacity:1;transform:none}
 body.mo .mnav a:nth-child(2){transition-delay:.05s}body.mo .mnav a:nth-child(3){transition-delay:.1s}body.mo .mnav a:nth-child(4){transition-delay:.15s}body.mo .mnav a:nth-child(5){transition-delay:.2s}
@@ -357,12 +361,14 @@ html[lang=ar] .pin2 h1{line-height:1.25}
   .pr>div:nth-child(3){padding-inline-start:0}
   .fg{grid-template-columns:1fr 1fr}
   .dp:nth-child(n+6){grid-column:span 6}
-  .pl{grid-template-columns:1fr;gap:4px}
+  .dp:last-child{grid-column:span 12}
+  .dp:last-child .pics{width:44%}
+  .pl{grid-template-columns:90px 1.3fr 1fr;gap:16px}
   .scr{grid-auto-columns:minmax(240px,42%)}
 }
 @media (max-width:640px){
   body{font-size:15px}
-  .bar{height:66px}.mnav{inset:66px 0 0}
+  .bar{height:66px}.mnav{top:66px;height:calc(100dvh - 66px)}
   .logo b{font-size:12px}
   .lang{padding:8px 12px}
   .dp,.dp:nth-child(1),.dp:nth-child(2){grid-column:span 12;min-height:300px}
@@ -381,6 +387,8 @@ html[lang=ar] .pin2 h1{line-height:1.25}
   .stats{gap:22px}
   .ask{padding:24px}
   .tb .sel{flex:1}
+  .dp:last-child .pics{width:62%}
+  .pl{grid-template-columns:1fr;gap:4px;padding:18px 4px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -411,3 +419,5 @@ h1.hx{font-size:clamp(46px,6.6vw,104px);line-height:1}
 .empty b{font-size:26px}
 html[lang=ar] h1.hx,html[lang=ar] .sh h2,html[lang=ar] .band h2,html[lang=ar] .shead h1,html[lang=ar] .pin2 h1,html[lang=ar] .dp h3{letter-spacing:0;line-height:1.3}
 .shop>div{min-width:0}.tag{bottom:-7%}
+.mnav a.btn{font-family:var(--sans);font-size:15px!important;font-weight:500!important;letter-spacing:0;line-height:1;height:52px;padding:0 24px;border:0;margin-top:28px;flex:none;transition-delay:.25s}
+.mnav a:not(.btn){display:block;flex:none}
