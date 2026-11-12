@@ -645,8 +645,8 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
 .chip.inl{position:static;display:inline-block;margin-inline-start:10px;vertical-align:1px;letter-spacing:.04em;text-transform:none}
 
 /* prices + buy now */
-.prc{display:block;font-weight:600;font-size:16px;letter-spacing:-.01em;color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
-.prc.big{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.025em;margin-top:0}
+.prc{display:block;font-family:"Helvetica Neue",Helvetica,Arial,var(--sans);font-weight:400;font-size:16px;letter-spacing:0;color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
+.prc.big{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.01em;margin-top:0}
 .pprice{margin-top:18px}
 .c .ft.has-pr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .c .ft.has-pr .wa,.plb .wa{width:100%;min-width:0;justify-content:center;margin:0}
@@ -658,8 +658,8 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
 .wa.buy:hover{background:var(--ink);color:#fff}
 .plb{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none;margin-inline-end:8px}
 .plist .pd .prc{display:inline;font-size:14px;margin:0 0 0 10px;color:var(--ink)}
-.sr-t small .sp-pr{color:var(--ink);font-weight:600}
-.mt em.mp{color:var(--ink);font-weight:600}
+.sr-t small .sp-pr{color:var(--ink);font-weight:400;font-family:"Helvetica Neue",Helvetica,Arial,var(--sans)}
+.mt em.mp{color:var(--ink);font-weight:400;font-family:"Helvetica Neue",Helvetica,Arial,var(--sans)}
 @media (max-width:640px){
   .prc{font-size:15px}
   .c .ft.has-pr{grid-template-columns:1fr}

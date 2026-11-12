@@ -95,9 +95,9 @@ async function load() {
 function shell() {
   $('#root').innerHTML = `
   <header class="top"><div class="tw">
-    <a class="brand" href="/admin"><img class="lgd" src="/logo-dark.png" alt=""><img class="lgw" src="/logo.png" alt=""><span><b>ZAITOON</b><small>ADMIN</small></span></a>
+    <a class="brand" href="/admin"><img src="/logo-dark.png" alt=""><span><b>ZAITOON</b><small>ADMIN</small></span></a>
     <label class="srch">${ico('search')}<input id="q" type="search" placeholder="Search name, brand, details…" autocomplete="off" enterkeyhint="search"></label>
-    <div class="tr"><button class="ib thm" id="thm" aria-label="Switch light or dark mode" title="Light / dark"></button><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
+    <div class="tr"><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
       <div class="mn"><button class="ib" id="mb" aria-label="Menu">${ico('menu')}</button><div class="md" id="md">
         <button data-a="cats">${ico('tag')}Categories</button><button data-a="exp">${ico('down')}Export CSV</button><button data-a="imp">${ico('up')}Import CSV</button>
         <a href="/" target="_blank" rel="noopener">${ico('ext')}View website</a><button data-a="out">${ico('out')}Log out</button></div></div></div>
@@ -114,8 +114,6 @@ function shell() {
   <input type="file" id="csvf" accept=".csv,text/csv" hidden>`;
   $('#q').oninput = e => { Q = e.target.value; N = PG; draw() };
   $('#add').onclick = () => openEdit(null);
-  const thIco = () => { $('#thm').innerHTML = ico(document.documentElement.classList.contains('dk') ? 'sun' : 'moon') };
-  thIco(); $('#thm').onclick = () => { const dk = document.documentElement.classList.toggle('dk'); try { localStorage.setItem('zm-admin-theme', dk ? 'dark' : 'light') } catch (_) { } document.querySelector('meta[name=theme-color]').content = dk ? '#0F0E0C' : '#F6F4EF'; thIco() };
   $('#mb').onclick = e => { e.stopPropagation(); $('#md').classList.toggle('on') };
   document.addEventListener('click', () => $('#md') && $('#md').classList.remove('on'));
   $('#md').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ cats: catsView, exp: exportCSV, imp: () => $('#csvf').click(), out: logout })[a.dataset.a]() };
