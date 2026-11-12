@@ -645,10 +645,8 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
 .chip.inl{position:static;display:inline-block;margin-inline-start:10px;vertical-align:1px;letter-spacing:.04em;text-transform:none}
 
 /* prices + buy now */
-.prc{display:block;font-family:"Helvetica Neue",Helvetica,Arial,var(--sans);font-weight:400;font-size:16px;letter-spacing:0;color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
+.prc{display:block;font-family:"Helvetica Neue",Helvetica,Arial,var(--sans);font-weight:500;font-size:16px;letter-spacing:0;color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
 .prc.big{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.01em;margin-top:0}
-.prc .cu,.sp-pr .cu,.mp .cu{font-weight:300;font-size:.82em;letter-spacing:.02em;color:var(--mut)}
-.prc .pn,.sp-pr .pn,.mp .pn{font-weight:700;font-style:normal;color:var(--ink)}
 .pprice{margin-top:18px}
 .c .ft.has-pr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .c .ft.has-pr .wa,.plb .wa{width:100%;min-width:0;justify-content:center;margin:0}

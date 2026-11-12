@@ -11,12 +11,13 @@ module.exports = async (req, res) => {
   const e = ENV(), inE = String(b.email || '').trim().toLowerCase(), inP = String(b.password || '').trim();
   // check every login so timing doesn't reveal which emails exist
   const ok = e.users.map(u => u.emails.map(x => same(inE, x)).includes(true) & same(inP, u.pass)).includes(1);
+  const who = ok ? e.users.flatMap(u => u.emails).find(x => x === inE) : '';
   if (!ok) {
     fails.set(ip, { n: f.n + 1, t: Date.now() });
     await new Promise(r => setTimeout(r, 700));
     return json(res, 401, { error: 'Wrong email or password.' });
   }
   fails.delete(ip);
-  setCookie(res, makeSession(), MAX_AGE);
+  setCookie(res, makeSession(who), MAX_AGE);
   json(res, 200, { ok: true });
 };

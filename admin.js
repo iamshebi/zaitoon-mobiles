@@ -11,7 +11,8 @@ const IC = {
   ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   down: '<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>', up: '<path d="M12 20V8M6 14l6-6 6 6M4 4h16"/>', tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.3"/>',
   out: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/>', img: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5L5 20"/>',
-  check: '<path d="M5 12.5 10 17l9-10"/>', sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>', moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>', back: '<path d="M15 6l-6 6 6 6"/>', box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'
+  check: '<path d="M5 12.5 10 17l9-10"/>', note: '<path d="M6 3.5h9l4 4V20a.5.5 0 0 1-.5.5h-12A.5.5 0 0 1 6 20z"/><path d="M14.5 3.5V8h4.5M9 12h7M9 15.5h5"/>',
+  pin: '<path d="M9 4h6l-1 5 3 3v1.5H7V12l3-3z"/><path d="M12 13.5V20"/>', pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>', sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>', moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>', back: '<path d="M15 6l-6 6 6 6"/>', box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'
 };
 const ico = (k, sw = 1.6) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
 const ST = { '': 'In stock', out: 'Out of stock', soon: 'Coming soon' };
@@ -97,9 +98,9 @@ function shell() {
   <header class="top"><div class="tw">
     <a class="brand" href="/admin"><img src="/logo-dark.png" alt=""><span><b>ZAITOON</b><small>ADMIN</small></span></a>
     <label class="srch">${ico('search')}<input id="q" type="search" placeholder="Search name, brand, details…" autocomplete="off" enterkeyhint="search"></label>
-    <div class="tr"><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
+    <div class="tr"><button class="ib" id="nb" aria-label="Notes" title="Notes">${ico('note')}</button><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
       <div class="mn"><button class="ib" id="mb" aria-label="Menu">${ico('menu')}</button><div class="md" id="md">
-        <button data-a="cats">${ico('tag')}Categories</button><button data-a="exp">${ico('down')}Export CSV</button><button data-a="imp">${ico('up')}Import CSV</button>
+        <button data-a="notes">${ico('note')}Notes</button><button data-a="cats">${ico('tag')}Categories</button><button data-a="exp">${ico('down')}Export CSV</button><button data-a="imp">${ico('up')}Import CSV</button>
         <a href="/" target="_blank" rel="noopener">${ico('ext')}View website</a><button data-a="out">${ico('out')}Log out</button></div></div></div>
   </div></header>
   <main class="tw main">
@@ -114,9 +115,10 @@ function shell() {
   <input type="file" id="csvf" accept=".csv,text/csv" hidden>`;
   $('#q').oninput = e => { Q = e.target.value; N = PG; draw() };
   $('#add').onclick = () => openEdit(null);
+  $('#nb').onclick = notesView;
   $('#mb').onclick = e => { e.stopPropagation(); $('#md').classList.toggle('on') };
   document.addEventListener('click', () => $('#md') && $('#md').classList.remove('on'));
-  $('#md').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ cats: catsView, exp: exportCSV, imp: () => $('#csvf').click(), out: logout })[a.dataset.a]() };
+  $('#md').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ notes: notesView, cats: catsView, exp: exportCSV, imp: () => $('#csvf').click(), out: logout })[a.dataset.a]() };
   $('#csvf').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importCSV(f) };
   $('#fd').onchange = e => { F.d = e.target.value; F.c = -1; N = PG; draw() };
   $('#fc').onchange = e => { F.c = +e.target.value; N = PG; draw() };
@@ -261,6 +263,51 @@ function catsView() {
     if (r) { const c = +r.dataset.cd, d = CAT.departments[+r.dataset.dd]; if (!confirm(`Remove category “${catName(c)}”?`)) return; d.cats = d.cats.filter(x => x !== c); saveDraft(); catsView(); draw() }
   };
   $('#sp').addEventListener('focusout', () => draw(), { once: false });
+}
+
+/* ---------- notes (private, shared by all admins, kept on GitHub encrypted) ---------- */
+let NOTES = null;
+const when = t => new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const who = e => esc(String(e || '').split('@')[0]);
+function notesHTML() {
+  if (!NOTES) return `<div class="nl-e"><span class="spin"></span></div>`;
+  if (!NOTES.length) return `<div class="nl-e">${ico('note')}<b>No notes yet</b><span>Write reminders, supplier contacts, to-dos… Everyone who logs in sees them.</span></div>`;
+  const list = NOTES.slice().sort((a, b) => (b.pin - a.pin) || (b.at - a.at));
+  return list.map(n => `<article class="nt${n.pin ? ' pin' : ''}" data-id="${n.id}">
+    <div class="nt-t">${esc(n.t)}</div>
+    <div class="nt-m"><span>${n.pin ? `<i class="pd">${ico('pin')}Pinned</i> · ` : ''}${when(n.at)} · ${who(n.by)}${n.ed ? ` · edited ${when(n.ed)}` : ''}</span>
+      <span class="nt-a"><button class="ib sm" data-np="${n.id}" title="${n.pin ? 'Unpin' : 'Pin to top'}" aria-label="Pin">${ico('pin')}</button><button class="ib sm" data-ne="${n.id}" title="Edit" aria-label="Edit">${ico('pen')}</button><button class="ib sm" data-nd="${n.id}" title="Delete" aria-label="Delete">${ico('trash')}</button></span></div></article>`).join('');
+}
+async function notesView() {
+  $('#md') && $('#md').classList.remove('on');
+  openSheet(`<div class="ed"><div class="eh"><button type="button" class="ib" data-close aria-label="Close">${ico('back')}</button><h2>Notes</h2><span></span></div>
+    <div class="eb"><div class="nw"><textarea id="nt" rows="3" maxlength="5000" placeholder="Write a note…"></textarea><div class="nw-f"><span class="mut sm">Private to admins. Saved for everyone who logs in.</span><button class="b dk sm" id="nadd">${ico('plus', 2)}Add note</button></div></div>
+    <div class="nl" id="nl">${notesHTML()}</div></div></div>`);
+  const sp = $('#sp'), list = () => { const l = $('#nl'); if (l) l.innerHTML = notesHTML() };
+  const send = async (body, okMsg) => {
+    try { const r = await api('notes', body); NOTES = r.notes; list(); if (okMsg) toast(okMsg, 'ok', 1800); return true }
+    catch (e) { toast(esc(e.message), 'err', 5000); return false }
+  };
+  $('#nadd').onclick = async () => {
+    const t = $('#nt').value.trim(); if (!t) return $('#nt').focus();
+    const b = $('#nadd'); b.disabled = true;
+    if (await send({ op: 'add', t }, 'Note saved')) $('#nt').value = '';
+    b.disabled = false;
+  };
+  $('#nt').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('#nadd').click() };
+  sp.onclick = async e => {
+    const p = e.target.closest('[data-np]'), ed = e.target.closest('[data-ne]'), d = e.target.closest('[data-nd]'), sv = e.target.closest('[data-ns]'), cx = e.target.closest('[data-nc]');
+    if (p) { const n = NOTES.find(x => x.id === p.dataset.np); if (n) send({ op: 'pin', id: n.id, pin: !n.pin }) }
+    if (d) { if (confirm('Delete this note?')) send({ op: 'del', id: d.dataset.nd }, 'Note deleted') }
+    if (ed) { const n = NOTES.find(x => x.id === ed.dataset.ne), a = ed.closest('.nt'); if (!n || !a) return;
+      a.innerHTML = `<textarea rows="4" maxlength="5000">${esc(n.t)}</textarea><div class="nw-f"><span></span><span class="nt-a"><button class="b lt sm" data-nc>Cancel</button><button class="b dk sm" data-ns="${n.id}">${ico('check', 2)}Save</button></span></div>`;
+      const ta = a.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length) }
+    if (cx) list();
+    if (sv) { const t = sv.closest('.nt').querySelector('textarea').value.trim(); if (!t) return; sv.disabled = true; if (!(await send({ op: 'edit', id: sv.dataset.ns, t }, 'Note updated'))) sv.disabled = false }
+  };
+  try { const r = await api('notes'); NOTES = r.notes; if (r.locked) toast('Older notes were saved with a previous security key and can’t be opened. New notes will work normally.', 'warn', 8000) }
+  catch (e) { NOTES = NOTES || []; toast(esc(e.message), 'err', 5000) }
+  list();
 }
 
 /* ---------- csv ---------- */

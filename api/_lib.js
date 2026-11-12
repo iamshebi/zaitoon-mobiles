@@ -34,19 +34,26 @@ function configured() {
   const e = ENV();
   return { login: !!(e.users.length && e.secret.length >= 16), github: !!e.token };
 }
-function makeSession() {
-  const e = ENV(), exp = Math.floor(Date.now() / 1000) + MAX_AGE, v = `${exp}`;
-  return `${v}.${sign(v + '|' + e.email, e.secret)}`;
+// Session cookie: <expiry>.<email, base64url>.<signature>
+function makeSession(email = '') {
+  const e = ENV(), exp = Math.floor(Date.now() / 1000) + MAX_AGE, who = Buffer.from(String(email)).toString('base64url');
+  return `${exp}.${who}.${sign(exp + '|' + who + '|' + e.email, e.secret)}`;
 }
 function readCookie(req) {
   const m = (req.headers.cookie || '').split(/;\s*/).find(c => c.startsWith(COOKIE + '='));
   return m ? decodeURIComponent(m.slice(COOKIE.length + 1)) : '';
 }
+// Returns the logged-in email (truthy) or false.
 function authed(req) {
   const e = ENV(); if (!configured().login) return false;
-  const [exp, mac] = readCookie(req).split('.');
-  if (!exp || !mac || +exp < Date.now() / 1000) return false;
-  try { return same(mac, sign(exp + '|' + e.email, e.secret)) } catch (_) { return false }
+  const [exp, who, mac] = readCookie(req).split('.');
+  if (!exp || who == null || !mac || +exp < Date.now() / 1000) return false;
+  try {
+    if (!same(mac, sign(exp + '|' + who + '|' + e.email, e.secret))) return false;
+    const email = Buffer.from(who, 'base64url').toString('utf8');
+    // the login must still exist (removing ADMIN_EMAIL_n signs that person out)
+    return e.users.some(u => u.emails.includes(email)) ? email : false;
+  } catch (_) { return false }
 }
 function setCookie(res, val, maxAge) {
   res.setHeader('Set-Cookie', `${COOKIE}=${encodeURIComponent(val)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`);

@@ -27,6 +27,7 @@ en: {
   askCat: c => `Can’t find it in ${c}?`, askCatP: 'Tell us what you’re after and we’ll check the shelves for you.',
   enq: 'Enquire', enqL: 'Enquire on WhatsApp', callUs: 'Call the store', callS: 'Call',
   pBrand: 'Brand', pCat: 'Category', pDept: 'Department', pAv: 'Availability', pAvV: 'Ask on WhatsApp', pDel: 'Delivery', pDelV: 'Across Ras Al Khaimah',
+  pNoteP: 'Tap Buy now and our team will confirm stock, colour and delivery or pickup with you on WhatsApp.',
   pNote: 'Prices and stock change daily. Send us a message and we’ll confirm availability, colours and today’s best price.',
   rel: 'More in', nf: 'This product isn’t available any more', back: 'Back to the store', photo: 'Photo coming soon',
   waP: (n, d, c, u) => `Hello Al Zaitoon 👋\nI'd like to ask about:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• Category: ${c}\n\nIs it available? What's the best price?\n${u}`,
@@ -57,6 +58,7 @@ ar: {
   askCat: c => `لم تجد ما تبحث عنه في ${c}؟`, askCatP: 'أخبرنا بما تريد ونبحث لك في المحل.',
   enq: 'استفسار', enqL: 'استفسر على واتساب', callUs: 'اتصل بالمحل', callS: 'اتصال',
   pBrand: 'الماركة', pCat: 'الفئة', pDept: 'القسم', pAv: 'التوفر', pAvV: 'اسأل على واتساب', pDel: 'التوصيل', pDelV: 'في جميع أنحاء رأس الخيمة',
+  pNoteP: 'اضغط «اشترِ الآن» وسيؤكد لك فريقنا التوفر واللون والتوصيل أو الاستلام عبر واتساب.',
   pNote: 'الأسعار والمخزون تتغير يومياً. راسلنا ونؤكد لك التوفر والألوان وأفضل سعر اليوم.',
   rel: 'المزيد من', nf: 'هذا المنتج غير متوفر حالياً', back: 'العودة إلى المتجر', photo: 'الصورة قريباً',
   waP: (n, d, c, u) => `مرحباً الزيتون 👋\nأود الاستفسار عن:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• الفئة: ${c}\n\nهل هو متوفر؟ وما أفضل سعر؟\n${u}`,
@@ -121,7 +123,7 @@ const waP = p => wa(t().waP(full(p), p.d, catN(p.c), purl(p)));
 const hasPr = p => typeof p.pr === 'number' && p.pr > 0;
 const prNum = v => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtPr = (v, lang = L) => lang === 'ar' ? prNum(v) + ' درهم' : 'AED ' + prNum(v);
-const prHtml = (v, lang = L) => lang === 'ar' ? `<b class="pn">${prNum(v)}</b> <span class="cu">درهم</span>` : `<span class="cu">AED</span> <b class="pn">${prNum(v)}</b>`;
+const prHtml = (v, lang = L) => lang === 'ar' ? `${prNum(v)} درهم` : `AED ${prNum(v)}`;
 const prTag = (p, cls = '') => hasPr(p) ? `<span class="prc ${cls}" dir="${L === 'ar' ? 'rtl' : 'ltr'}">${prHtml(p.pr)}</span>` : '';
 const BUY = { en: { b: 'Buy now', bl: 'Buy now on WhatsApp', m: (n, d, pr, u) => `Hello Al Zaitoon 👋\nI'd like to buy:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• Price: ${pr}\n\nPlease confirm availability, payment and delivery or pickup.\n${u}` },
   ar: { b: 'اشترِ الآن', bl: 'اشترِ الآن عبر واتساب', m: (n, d, pr, u) => `مرحباً الزيتون 👋\nأود شراء:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• السعر: ${pr}\n\nيرجى تأكيد التوفر وطريقة الدفع والتوصيل أو الاستلام.\n${u}` } };
@@ -332,7 +334,7 @@ function product() {
       ${hasPr(p) ? `<div class="pprice rv in" style="--d:.28s">${prTag(p, 'big')}</div>` : ''}
       ${hasPr(p) ? `<div class="row pb3 rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waBuy(p)}">${WAI}<span class="lg">${BUY[L].bl}</span><span class="bs">${BUY[L].b}</span></a><a class="btn lt" target="_blank" rel="noopener" href="${waP(p)}"><span class="lg">${x.enqL}</span><span class="bs">${x.enq}</span></a><a class="btn lt" href="tel:${TEL}"><span class="lg">${x.callUs}</span><span class="bs">${x.callS}</span></a></div>` : `<div class="row rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a><a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>`}
       <div class="ppay rv in" style="--d:.36s">${x2().payIn} ${payLogos()}</div>
-      <div class="note rv in" style="--d:.4s">${ico('info', 1.5)}<span>${x.pNote}</span></div>
+      <div class="note rv in" style="--d:.4s">${ico('info', 1.5)}<span>${hasPr(p) ? x.pNoteP : x.pNote}</span></div>
       <ul class="spec rv in" style="--d:.48s">
         ${p.b ? `<li><span>${x.pBrand}</span><a href="/shop?b=${encodeURIComponent(p.b)}">${esc(p.b)}</a></li>` : ''}
         <li><span>${x.pCat}</span><a href="/shop?c=${p.c}">${catN(p.c)}</a></li>
