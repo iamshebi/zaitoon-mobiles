@@ -1,11 +1,16 @@
 // Shared helpers for the admin API. Secrets come only from Vercel environment variables.
 const crypto = require('crypto');
 
+const cleanEmails = v => (v || '').toLowerCase().replace(/admin_email(_\d)?\s*=/g, ' ').split(/[\s,;"'<>]+/).filter(x => x.includes('@'));
+const cleanPass = v => (v || '').trim().replace(/^admin_password(_\d)?\s*=\s*/i, '').replace(/^(["'])(.*)\1$/, '$2');
 const ENV = () => ({
   email: (process.env.ADMIN_EMAIL || '').trim().toLowerCase(),
-  // ADMIN_EMAIL may hold several logins separated by commas: a@x.com, b@y.com
-  emails: (process.env.ADMIN_EMAIL || '').toLowerCase().replace(/admin_email\s*=/g, ' ').split(/[\s,;"'<>]+/).filter(x => x.includes('@')),
-  pass: (process.env.ADMIN_PASSWORD || '').trim().replace(/^admin_password\s*=\s*/i, '').replace(/^(["'])(.*)\1$/, '$2'),
+  // Logins: ADMIN_EMAIL + ADMIN_PASSWORD, plus optional ADMIN_EMAIL_2 + ADMIN_PASSWORD_2 ... up to _5.
+  // Each ADMIN_EMAIL* may list several emails (comma-separated) that share that password.
+  users: [''].concat([2, 3, 4, 5].map(n => '_' + n)).map(sfx => ({
+    emails: cleanEmails(process.env['ADMIN_EMAIL' + sfx]),
+    pass: cleanPass(process.env['ADMIN_PASSWORD' + sfx])
+  })).filter(u => u.emails.length && u.pass),
   secret: process.env.SESSION_SECRET || '',
   token: process.env.GITHUB_TOKEN || '',
   repo: process.env.GITHUB_REPO || 'iamshebi/zaitoon-mobiles',
@@ -27,7 +32,7 @@ function json(res, code, body) {
 }
 function configured() {
   const e = ENV();
-  return { login: !!(e.emails.length && e.pass && e.secret.length >= 16), github: !!e.token };
+  return { login: !!(e.users.length && e.secret.length >= 16), github: !!e.token };
 }
 function makeSession() {
   const e = ENV(), exp = Math.floor(Date.now() / 1000) + MAX_AGE, v = `${exp}`;
