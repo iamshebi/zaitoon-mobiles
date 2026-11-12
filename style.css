@@ -661,3 +661,5 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
   .plb{margin:0 0 12px;flex-wrap:wrap}
   .plist li{flex-wrap:wrap}
 }
+
+html[dir=rtl] .plist .pd .prc{margin:0 10px 0 0}

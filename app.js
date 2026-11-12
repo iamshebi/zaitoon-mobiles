@@ -117,10 +117,10 @@ const full = p => (p.b && !p.n.toLowerCase().startsWith(p.b.toLowerCase()) ? p.b
 const catN = i => D.categories[i][L];
 const deptOf = c => D.departments.find(d => d.cats.includes(c));
 const purl = p => location.origin + '/product?id=' + encodeURIComponent(p.id);
-const waP = p => wa(t().waP(full(p), p.d, D.categories[p.c].en, purl(p)));
+const waP = p => wa(t().waP(full(p), p.d, catN(p.c), purl(p)));
 const hasPr = p => typeof p.pr === 'number' && p.pr > 0;
-const fmtPr = v => 'AED ' + Number(v).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
-const prTag = (p, cls = '') => hasPr(p) ? `<span class="prc ${cls}" dir="ltr">${fmtPr(p.pr)}</span>` : '';
+const fmtPr = (v, lang = L) => { const n = Number(v).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }); return lang === 'ar' ? n + ' درهم' : 'AED ' + n };
+const prTag = (p, cls = '') => hasPr(p) ? `<span class="prc ${cls}" dir="${L === 'ar' ? 'rtl' : 'ltr'}">${fmtPr(p.pr)}</span>` : '';
 const BUY = { en: { b: 'Buy now', bl: 'Buy now on WhatsApp', m: (n, d, pr, u) => `Hello Al Zaitoon 👋\nI'd like to buy:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• Price: ${pr}\n\nPlease confirm availability, payment and delivery or pickup.\n${u}` },
   ar: { b: 'اشترِ الآن', bl: 'اشترِ الآن عبر واتساب', m: (n, d, pr, u) => `مرحباً الزيتون 👋\nأود شراء:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• السعر: ${pr}\n\nيرجى تأكيد التوفر وطريقة الدفع والتوصيل أو الاستلام.\n${u}` } };
 const waBuy = p => wa(BUY[L].m(full(p), p.d, fmtPr(p.pr), purl(p)));
@@ -493,7 +493,7 @@ function drawS() {
   const cats = D.categories.map((c, i) => ({ c, i })).filter(o => (o.c.en + ' ' + o.c.ar).toLowerCase().includes(ql)).slice(0, 6);
   const hl = s => esc(s).replace(new RegExp('(' + qv.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>');
   out.innerHTML = (cats.length ? `<h6>${x.srchCats}</h6><div class="sr-ch">${cats.map(o => `<a href="/shop?c=${o.i}">${ico(CI[o.i], 1.4)}${o.c[L]}</a>`).join('')}</div>` : '') +
-    (r.length ? `<h6>${x.srchProd}</h6><div class="sr-l">${r.slice(0, 8).map(p => `<a data-r href="/product?id=${encodeURIComponent(p.id)}"><span class="sr-im">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.3)}</span><span class="sr-t"><b>${hl(p.n)}</b><small>${esc(p.b || '')}${p.b ? ' · ' : ''}${esc(catN(p.c))}${hasPr(p) ? ' · <b class="sp-pr" dir="ltr">' + fmtPr(p.pr) + '</b>' : ''}</small></span>${ico('arrow', 1.5)}</a>`).join('')}</div>
+    (r.length ? `<h6>${x.srchProd}</h6><div class="sr-l">${r.slice(0, 8).map(p => `<a data-r href="/product?id=${encodeURIComponent(p.id)}"><span class="sr-im">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.3)}</span><span class="sr-t"><b>${hl(p.n)}</b><small>${esc(p.b || '')}${p.b ? ' · ' : ''}${esc(catN(p.c))}${hasPr(p) ? ' · <b class="sp-pr">' + fmtPr(p.pr) + '</b>' : ''}</small></span>${ico('arrow', 1.5)}</a>`).join('')}</div>
       <a class="btn dk sr-all" href="/shop?q=${encodeURIComponent(qv)}">${x.srchAll(r.length)} ${ar()}</a>`
       : `<div class="sr-no">${x.srchNone}<a class="btn gd sm" target="_blank" rel="noopener" href="${wa(t().hello + qv)}">${WAI}${t().ask}</a></div>`);
 }
@@ -551,7 +551,7 @@ function megaDraw(onlyP) {
   $$('#mgc [data-mc]').forEach(a => a.classList.toggle('on', +a.dataset.mc === MC));
   const list = D.products.filter(p => p.c === MC).sort((a, b) => (b.i ? 1 : 0) - (a.i ? 1 : 0));
   $('#mgp').innerHTML = `<div class="mgh"><h6>${catN(MC)} · ${list.length} ${t().items}</h6><a class="btn dk sm" href="/shop?c=${MC}">${x.mmAll(catN(MC))} ${ar()}</a></div>
-    <div class="mgg">${list.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${Math.min(i, 14)}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b>${hasPr(p) ? `<em class="mp" dir="ltr">${fmtPr(p.pr)}</em>` : p.d ? `<em>${esc(p.d)}</em>` : ''}</span></a>`).join('')}</div>`;
+    <div class="mgg">${list.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${Math.min(i, 14)}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b>${hasPr(p) ? `<em class="mp">${fmtPr(p.pr)}</em>` : p.d ? `<em>${esc(p.d)}</em>` : ''}</span></a>`).join('')}</div>`;
   $('#mgp .mgg').scrollTop = 0;
 }
 
