@@ -2,20 +2,9 @@
 // in the GitHub repo, so every admin sees the same notes on any device. Saving a note does not redeploy
 // the website (see ignoreCommand in vercel.json) and the file is never served (.vercelignore).
 const crypto = require('crypto');
-const { json, authed, configured, ENV, gh, fromAdmin, readBody } = require('./_lib');
+const { json, authed, configured, ENV, gh, fromAdmin, readBody, seal, unseal } = require('./_lib');
 const PATH = 'data/admin-notes.enc';
-const key = () => crypto.createHash('sha256').update('zm-notes|' + ENV().secret).digest();
-
-function seal(notes) {
-  const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', key(), iv);
-  const data = Buffer.concat([c.update(JSON.stringify(notes), 'utf8'), c.final()]);
-  return JSON.stringify({ v: 1, iv: iv.toString('base64'), tag: c.getAuthTag().toString('base64'), data: data.toString('base64') });
-}
-function open(text) {
-  const o = JSON.parse(text), d = crypto.createDecipheriv('aes-256-gcm', key(), Buffer.from(o.iv, 'base64'));
-  d.setAuthTag(Buffer.from(o.tag, 'base64'));
-  return JSON.parse(Buffer.concat([d.update(Buffer.from(o.data, 'base64')), d.final()]).toString('utf8'));
-}
+const open = t => unseal(t);
 async function read() {
   const e = ENV();
   try {

@@ -77,4 +77,28 @@ async function readBody(req) {
   const chunks = []; for await (const c of req) chunks.push(c);
   return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
 }
-module.exports = { ENV, json, configured, makeSession, authed, setCookie, same, fromAdmin, gh, readBody, MAX_AGE };
+// Encrypt small private data (AES-256-GCM) with a key derived from SESSION_SECRET.
+const ekey = scope => crypto.createHash('sha256').update(scope + '|' + ENV().secret).digest();
+function seal(obj, scope = 'zm-notes') {
+  const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', ekey(scope), iv);
+  const data = Buffer.concat([c.update(JSON.stringify(obj), 'utf8'), c.final()]);
+  return JSON.stringify({ v: 1, iv: iv.toString('base64'), tag: c.getAuthTag().toString('base64'), data: data.toString('base64') });
+}
+function unseal(text, scope = 'zm-notes') {
+  const o = JSON.parse(text), d = crypto.createDecipheriv('aes-256-gcm', ekey(scope), Buffer.from(o.iv, 'base64'));
+  d.setAuthTag(Buffer.from(o.tag, 'base64'));
+  return JSON.parse(Buffer.concat([d.update(Buffer.from(o.data, 'base64')), d.final()]).toString('utf8'));
+}
+// Device details of the person making a change (for the admin History view).
+function device(req) {
+  const H = k => String(req.headers[k] || ''), ua = H('user-agent');
+  const ip = (H('x-forwarded-for').split(',')[0] || H('x-real-ip')).trim();
+  const dec = v => { try { return decodeURIComponent(v) } catch (_) { return v } };
+  const am = (ua.match(/Android [\d.]+;\s*([^;)]+?)(?:\s+Build[^;)]*)?\)/) || [])[1], model = am && am.trim() !== 'K' ? am.trim() : '';
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android' + (model ? ' · ' + model : '')
+    : /Windows/.test(ua) ? 'Windows PC' : /Macintosh|Mac OS X/.test(ua) ? 'Mac' : /CrOS/.test(ua) ? 'Chromebook' : /Linux/.test(ua) ? 'Linux' : 'Unknown device';
+  const br = /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /EdgA?\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /Chrome|CriOS/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : 'Browser';
+  const place = [dec(H('x-vercel-ip-city')), H('x-vercel-ip-country')].filter(Boolean).join(', ');
+  return { device: os, browser: br, ip, place, ua: ua.slice(0, 300) };
+}
+module.exports = { seal, unseal, device, ENV, json, configured, makeSession, authed, setCookie, same, fromAdmin, gh, readBody, MAX_AGE };

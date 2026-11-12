@@ -1,5 +1,5 @@
 // Lists changes published from the admin dashboard (read from the GitHub commit history).
-const { json, authed, configured, ENV, gh } = require('./_lib');
+const { json, authed, configured, ENV, gh, unseal } = require('./_lib');
 const MARK = 'Saved from the Zaitoon admin dashboard.';
 module.exports = async (req, res) => {
   if (!authed(req)) return json(res, 401, { error: 'Please log in.' });
@@ -11,7 +11,9 @@ module.exports = async (req, res) => {
     const items = list.filter(c => (c.commit.message || '').includes(MARK)).map(c => {
       const m = c.commit.message.replace(MARK, '').trim().split('\n');
       const by = (m.find(l => l.startsWith('By: ')) || '').slice(4).trim();
-      return { id: c.sha.slice(0, 7), at: c.commit.committer.date || c.commit.author.date, title: m[0], by, lines: m.filter(l => l.startsWith('• ')).map(l => l.slice(2)) };
+      let dev = null; const dl = m.find(l => l.startsWith('Device: '));
+      if (dl) { try { dev = unseal(Buffer.from(dl.slice(8).trim(), 'base64').toString('utf8'), 'zm-device'); delete dev.ua } catch (_) { dev = { locked: true } } }
+      return { dev, id: c.sha.slice(0, 7), at: c.commit.committer.date || c.commit.author.date, title: m[0], by, lines: m.filter(l => l.startsWith('• ')).map(l => l.slice(2)) };
     });
     json(res, 200, { items, more: list.length === per, page });
   } catch (err) { json(res, 500, { error: 'Could not load the history: ' + err.message }) }

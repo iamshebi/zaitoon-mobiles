@@ -12,6 +12,7 @@ const IC = {
   down: '<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>', up: '<path d="M12 20V8M6 14l6-6 6 6M4 4h16"/>', tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.3"/>',
   out: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/>', img: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5L5 20"/>',
   check: '<path d="M5 12.5 10 17l9-10"/>', note: '<path d="M6 3.5h9l4 4V20a.5.5 0 0 1-.5.5h-12A.5.5 0 0 1 6 20z"/><path d="M14.5 3.5V8h4.5M9 12h7M9 15.5h5"/>',
+  phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>', pc: '<rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8.5 20h7M12 16.5V20"/>',
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   pin: '<path d="M9 4h6l-1 5 3 3v1.5H7V12l3-3z"/><path d="M12 13.5V20"/>', pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>', sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>', moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>', back: '<path d="M15 6l-6 6 6 6"/>', box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'
 };
@@ -312,6 +313,10 @@ async function notesView() {
   list();
 }
 
+// phone model (Chrome/Android hides it from the normal browser info)
+async function clientInfo() {
+  try { const u = navigator.userAgentData; if (!u || !u.getHighEntropyValues) return {}; const v = await u.getHighEntropyValues(['model', 'platform', 'platformVersion']); return { model: v.model || '', platform: v.platform || '', pv: v.platformVersion || '' } } catch (_) { return {} }
+}
 /* ---------- history of changes published from this dashboard ---------- */
 async function historyView() {
   $('#md') && $('#md').classList.remove('on');
@@ -328,6 +333,7 @@ async function historyView() {
     for (const it of items) {
       const d = day(it.at); if (d !== last) { h += `<h4 class="hd">${d}</h4>`; last = d }
       h += `<article class="hi"><div class="hi-h"><b>${esc(it.title)}</b><span>${time(it.at)}${it.by ? ' · ' + who(it.by) : ''}</span></div>
+        ${it.dev ? `<div class="hi-d">${ico(/iPhone|Android/.test(it.dev.device || '') ? 'phone' : 'pc')}<span>${it.dev.locked ? 'Device details saved with an old key' : [it.dev.device, it.dev.browser, it.dev.ip && 'IP ' + it.dev.ip, it.dev.place].filter(Boolean).map(esc).join(' · ')}</span></div>` : ''}
         ${it.lines.length ? `<ul>${it.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : `<p class="mut sm">No details were recorded for this change.</p>`}</article>`;
     }
     el.innerHTML = h; $('#hm').hidden = !more;
@@ -398,7 +404,7 @@ async function publish() {
     const images = Object.entries(IMGS).map(([path, b64]) => ({ path, b64 }));
     const size = JSON.stringify(images).length;
     if (size > 3_500_000) throw new Error('Too many new photos in one go. Publish after every 10–15 photos.');
-    const r = await api('publish', { sha: SHA, catalog: CAT, images, message: `Update ${n} item${n === 1 ? '' : 's'} from admin` });
+    const r = await api('publish', { sha: SHA, catalog: CAT, images, client: await clientInfo(), message: `Update ${n} item${n === 1 ? '' : 's'} from admin` });
     for (const [path, b64] of Object.entries(IMGS)) PREV[path.slice(9)] = 'data:' + mime(path) + ';base64,' + b64;
     SHA = r.sha; CAT.v = r.v; BASE = JSON.stringify(CAT); IMGS = {}; saveDraft(); draw();
     toast(`<span class="spin sm"></span>Published. Updating the website… (about a minute)`, 'ok', 0);

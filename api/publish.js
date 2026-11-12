@@ -1,5 +1,5 @@
 // Saves the edited catalogue (and any new photos) to GitHub as ONE commit. Vercel then redeploys the site.
-const { json, authed, configured, ENV, gh, fromAdmin, readBody } = require('./_lib');
+const { json, authed, configured, ENV, gh, fromAdmin, readBody, seal, device } = require('./_lib');
 const okPath = p => /^products\/[a-z0-9][a-z0-9-]{0,120}\.(webp|jpg|jpeg|png)$/.test(p);
 function validate(c) {
   if (!c || !Array.isArray(c.departments) || !Array.isArray(c.categories) || !Array.isArray(c.products)) return 'Catalogue format is invalid.';
@@ -42,6 +42,11 @@ function describe(oldC, newC) {
   if (JSON.stringify(oldC.categories) !== JSON.stringify(newC.categories) || JSON.stringify(oldC.departments) !== JSON.stringify(newC.departments)) out.push('Departments / categories updated');
   return out;
 }
+function withClient(d, c) {
+  const t = v => String(v || '').replace(/[^\w .,()+\/-]/g, '').trim().slice(0, 60);
+  if (c && typeof c === 'object') { const m = t(c.model); if (m && /^Android/.test(d.device) && !d.device.includes('·')) d.device += ' · ' + m; if (m && !/^Android|iPhone|iPad/.test(d.device)) d.device += ' · ' + m }
+  return d;
+}
 async function readCatalog(R, f) {
   let text = f.content && f.encoding === 'base64' ? Buffer.from(f.content, 'base64').toString('utf8') : '';
   if (!text) { const bl = await gh(`${R}/git/blobs/${f.sha}`); text = Buffer.from(bl.content, 'base64').toString('utf8') }
@@ -74,7 +79,7 @@ module.exports = async (req, res) => {
     const t = await gh(`${R}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: commit.tree.sha, tree }) });
     let lines = []; try { lines = describe(await readCatalog(R, cur), b.catalog) } catch (_) { }
     if (lines.length > 80) lines = lines.slice(0, 80).concat(`…and ${lines.length - 80} more changes`);
-    const msg = String(b.message || 'Update products').slice(0, 200) + `\n\nBy: ${who}\n` + lines.map(l => '• ' + l).join('\n') + '\n\nSaved from the Zaitoon admin dashboard.';
+    const msg = String(b.message || 'Update products').slice(0, 200) + `\n\nBy: ${who}\nDevice: ${Buffer.from(seal(withClient(device(req), b.client), 'zm-device')).toString('base64')}\n` + lines.map(l => '• ' + l).join('\n') + '\n\nSaved from the Zaitoon admin dashboard.';
     const nc = await gh(`${R}/git/commits`, { method: 'POST', body: JSON.stringify({ message: msg, tree: t.sha, parents: [head] }) });
     await gh(`${R}/git/refs/heads/${encodeURIComponent(e.branch)}`, { method: 'PATCH', body: JSON.stringify({ sha: nc.sha }) });
     const after = await gh(`${R}/contents/catalog.json?ref=${nc.sha}`);
