@@ -4,8 +4,8 @@ const crypto = require('crypto');
 const ENV = () => ({
   email: (process.env.ADMIN_EMAIL || '').trim().toLowerCase(),
   // ADMIN_EMAIL may hold several logins separated by commas: a@x.com, b@y.com
-  emails: (process.env.ADMIN_EMAIL || '').toLowerCase().split(/[\s,;]+/).filter(Boolean),
-  pass: process.env.ADMIN_PASSWORD || '',
+  emails: (process.env.ADMIN_EMAIL || '').toLowerCase().replace(/admin_email\s*=/g, ' ').split(/[\s,;"'<>]+/).filter(x => x.includes('@')),
+  pass: (process.env.ADMIN_PASSWORD || '').trim().replace(/^admin_password\s*=\s*/i, '').replace(/^(["'])(.*)\1$/, '$2'),
   secret: process.env.SESSION_SECRET || '',
   token: process.env.GITHUB_TOKEN || '',
   repo: process.env.GITHUB_REPO || 'iamshebi/zaitoon-mobiles',

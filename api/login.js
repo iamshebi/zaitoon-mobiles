@@ -8,8 +8,9 @@ module.exports = async (req, res) => {
   const f = fails.get(ip) || { n: 0, t: 0 };
   if (f.n >= 8 && Date.now() - f.t < 15 * 60 * 1000) return json(res, 429, { error: 'Too many attempts. Try again in 15 minutes.' });
   let b; try { b = await readBody(req) } catch (_) { return json(res, 400, { error: 'Bad request' }) }
-  const e = ENV(), inE = String(b.email || '').trim().toLowerCase(), okE = e.emails.map(x => same(inE, x)).includes(true), okP = same(String(b.password || ''), e.pass);
+  const e = ENV(), inE = String(b.email || '').trim().toLowerCase(), okE = e.emails.map(x => same(inE, x)).includes(true), okP = same(String(b.password || '').trim(), e.pass);
   if (!(okE && okP)) {
+    console.log(`[login] failed: emailMatch=${okE} passwordMatch=${okP} emailsConfigured=${e.emails.length} passwordLength=${e.pass.length}`);
     fails.set(ip, { n: f.n + 1, t: Date.now() });
     await new Promise(r => setTimeout(r, 700));
     return json(res, 401, { error: 'Wrong email or password.' });
