@@ -648,7 +648,9 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
 .prc{display:block;font-weight:600;font-size:16px;letter-spacing:-.01em;color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
 .prc.big{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.025em;margin-top:0}
 .pprice{margin-top:18px}
-.c .ft.has-pr{justify-content:flex-start;gap:6px;flex-wrap:wrap}
+.c .ft.has-pr{justify-content:space-between;gap:6px;flex-wrap:wrap}
+.c .ft.has-pr .wa:last-child{margin-inline-start:auto}
+.pb3 .bs{display:none}
 .wa.buy{background:var(--gold2);color:#fff}
 .wa.buy:hover{background:var(--ink);color:#fff}
 .plb{display:flex;gap:6px;flex:none;margin-inline-end:8px}
@@ -660,6 +662,10 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
   .c .ft.has-pr{flex-direction:column;align-items:stretch}
   .plb{margin:0 0 12px;flex-wrap:wrap}
   .plist li{flex-wrap:wrap}
+  .pb3{display:grid!important;grid-template-columns:1.3fr 1fr 1fr;gap:8px;width:100%}
+  .pb3 .btn{width:100%;min-width:0;height:48px;padding:0 10px;gap:7px;font-size:13.5px}
+  .pb3 .btn svg{width:16px;height:16px}
+  .pb3 .lg{display:none}.pb3 .bs{display:inline}
 }
 
 html[dir=rtl] .plist .pd .prc{margin:0 10px 0 0}

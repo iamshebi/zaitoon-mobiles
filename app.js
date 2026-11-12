@@ -25,7 +25,7 @@ en: {
   showing: (n, t) => `Showing <b>${n}</b> of <b>${t}</b>`, more: 'Show more', none: 'Nothing matches that yet', noneP: 'Try another search, or ask us. We may have it in store.',
   shopP: 'Browse everything in store. Tap Buy now or Enquire and we’ll reply on WhatsApp with availability and today’s best price.',
   askCat: c => `Can’t find it in ${c}?`, askCatP: 'Tell us what you’re after and we’ll check the shelves for you.',
-  enq: 'Enquire', enqL: 'Enquire on WhatsApp', callUs: 'Call the store',
+  enq: 'Enquire', enqL: 'Enquire on WhatsApp', callUs: 'Call the store', callS: 'Call',
   pBrand: 'Brand', pCat: 'Category', pDept: 'Department', pAv: 'Availability', pAvV: 'Ask on WhatsApp', pDel: 'Delivery', pDelV: 'Across Ras Al Khaimah',
   pNote: 'Prices and stock change daily. Send us a message and we’ll confirm availability, colours and today’s best price.',
   rel: 'More in', nf: 'This product isn’t available any more', back: 'Back to the store', photo: 'Photo coming soon',
@@ -55,7 +55,7 @@ ar: {
   showing: (n, t) => `عرض <b>${n}</b> من <b>${t}</b>`, more: 'عرض المزيد', none: 'لا توجد نتائج', noneP: 'جرّب بحثاً آخر أو اسألنا، قد يكون متوفراً في المحل.',
   shopP: 'تصفح كل ما في المتجر. اضغط اشترِ الآن أو استفسار ونرد عليك على واتساب بالتوفر وأفضل سعر اليوم.',
   askCat: c => `لم تجد ما تبحث عنه في ${c}؟`, askCatP: 'أخبرنا بما تريد ونبحث لك في المحل.',
-  enq: 'استفسار', enqL: 'استفسر على واتساب', callUs: 'اتصل بالمحل',
+  enq: 'استفسار', enqL: 'استفسر على واتساب', callUs: 'اتصل بالمحل', callS: 'اتصال',
   pBrand: 'الماركة', pCat: 'الفئة', pDept: 'القسم', pAv: 'التوفر', pAvV: 'اسأل على واتساب', pDel: 'التوصيل', pDelV: 'في جميع أنحاء رأس الخيمة',
   pNote: 'الأسعار والمخزون تتغير يومياً. راسلنا ونؤكد لك التوفر والألوان وأفضل سعر اليوم.',
   rel: 'المزيد من', nf: 'هذا المنتج غير متوفر حالياً', back: 'العودة إلى المتجر', photo: 'الصورة قريباً',
@@ -328,7 +328,7 @@ function product() {
       <h1>${lines([esc(p.n)])}</h1>
       ${p.d ? `<p class="det rv in" style="--d:.25s">${esc(p.d)}</p>` : ''}
       ${hasPr(p) ? `<div class="pprice rv in" style="--d:.28s">${prTag(p, 'big')}</div>` : ''}
-      <div class="row rv in" style="--d:.32s">${hasPr(p) ? `<a class="btn gd" target="_blank" rel="noopener" href="${waBuy(p)}">${WAI}${BUY[L].bl}</a><a class="btn lt" target="_blank" rel="noopener" href="${waP(p)}">${x.enqL}</a>` : `<a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a>`}<a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>
+      ${hasPr(p) ? `<div class="row pb3 rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waBuy(p)}">${WAI}<span class="lg">${BUY[L].bl}</span><span class="bs">${BUY[L].b}</span></a><a class="btn lt" target="_blank" rel="noopener" href="${waP(p)}"><span class="lg">${x.enqL}</span><span class="bs">${x.enq}</span></a><a class="btn lt" href="tel:${TEL}"><span class="lg">${x.callUs}</span><span class="bs">${x.callS}</span></a></div>` : `<div class="row rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a><a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>`}
       <div class="ppay rv in" style="--d:.36s">${x2().payIn} ${payLogos()}</div>
       <div class="note rv in" style="--d:.4s">${ico('info', 1.5)}<span>${x.pNote}</span></div>
       <ul class="spec rv in" style="--d:.48s">
