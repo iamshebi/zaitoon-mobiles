@@ -139,7 +139,7 @@ function chrome() {
   <div class="hr"><button class="sbtn" id="sbtn" aria-label="${x2().srch}">${ico('search', 1.6)}<span>${x2().srch}</span><kbd>/</kbd></button><button class="lang" id="lang">${L === 'ar' ? 'EN' : 'ع'}</button><a class="btn dk sm" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}<span>${x.msg}</span></a><button class="burger" id="bg" aria-label="Menu"><i></i></button></div></div>
 `;
   let mn = $('#mnav'); if (!mn) { mn = document.createElement('div'); mn.id = 'mnav'; mn.className = 'mnav'; document.body.insertBefore(mn, $('#app')) }
-  mn.innerHTML = `<button class="msrch" data-os>${ico('search', 1.6)}<span>${x2().srchP}</span></button>${nav.map(n => `<a href="${n[0]}">${n[1]}</a>`).join('')}<a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.msg}</a>`;
+  mn.innerHTML = `<button class="msrch" data-os>${ico('search', 1.6)}<span>${x2().srchP}</span></button>${mtree()}${nav.slice(1).map(n => `<a href="${n[0]}">${n[1]}</a>`).join('')}<a class="btn gd" target="_blank" rel="noopener" href="${wa(x.waHi)}">${WAI}${x.msg}</a>`;
   document.body.classList.remove('mo');
   $('#ft').innerHTML = `<div class="w"><div class="fg">
    <div><a class="logo" href="/"><img src="/logo-dark.png" alt="" width="40" height="30"><span><b>ZAITOON</b><small>MOBILES</small></span></a><p class="big serif">${x.fBig}</p></div>
@@ -496,34 +496,57 @@ addEventListener('keydown', e => {
   if ((e.key === '/' && tag !== 'input' && tag !== 'textarea') || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')) { e.preventDefault(); openS() }
 });
 
-/* desktop mega menu */
-let MD = 0, MC = -1, mmT;
-const mmOK = () => matchMedia('(min-width:1081px) and (hover:hover)').matches;
+/* desktop mega menu: departments > categories > every product */
+let MD = 0, MC = -1, mmT, mmY = 0;
+const mmOK = () => matchMedia('(min-width:1024px)').matches;
 function megaInit() {
   const hd = $('#hd'); let mg = $('#mega');
   if (!mg) { mg = document.createElement('div'); mg.id = 'mega'; mg.className = 'mega'; hd.appendChild(mg) }
   mg.innerHTML = `<div class="w mg"><div class="mgd" id="mgd"></div><div class="mgc" id="mgc"></div><div class="mgp" id="mgp"></div></div>`;
-  const open = () => { if (!mmOK()) return; clearTimeout(mmT); if (!hd.classList.contains('mm')) { megaDraw(); hd.classList.add('mm') } };
-  const close = () => { clearTimeout(mmT); mmT = setTimeout(() => hd.classList.remove('mm'), 160) };
+  const isOpen = () => hd.classList.contains('mm');
+  const open = () => { if (!mmOK()) return; clearTimeout(mmT); if (!isOpen()) { if (MC < 0) MC = D.departments[MD].cats[0]; megaDraw(); hd.classList.add('mm'); mmY = scrollY } };
+  const close = (ms = 220) => { clearTimeout(mmT); mmT = setTimeout(() => hd.classList.remove('mm'), ms) };
   const trg = $('#nshop');
-  trg.addEventListener('mouseenter', open); trg.addEventListener('focus', open); trg.addEventListener('mouseleave', close);
-  mg.addEventListener('mouseenter', () => clearTimeout(mmT)); mg.addEventListener('mouseleave', close);
-  mg.addEventListener('mouseover', e => {
+  trg.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') open() });
+  trg.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') close() });
+  trg.addEventListener('focus', () => { if (trg.matches(':focus-visible')) open() });
+  trg.addEventListener('click', e => { if (!mmOK()) return; if (e.pointerType === 'mouse' && isOpen()) return; if (!isOpen()) { e.preventDefault(); open() } });
+  mg.addEventListener('pointerenter', () => clearTimeout(mmT));
+  mg.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') close() });
+  mg.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
     const d = e.target.closest('[data-md]'), c = e.target.closest('[data-mc]');
-    if (d && +d.dataset.md !== MD) { MD = +d.dataset.md; MC = -1; megaDraw() }
+    if (d && +d.dataset.md !== MD) { MD = +d.dataset.md; MC = D.departments[MD].cats[0]; megaDraw() }
     else if (c && +c.dataset.mc !== MC) { MC = +c.dataset.mc; megaDraw(true) }
   });
-  addEventListener('scroll', () => hd.classList.remove('mm'), { passive: true });
+  mg.addEventListener('click', e => {
+    const d = e.target.closest('[data-md]'), c = e.target.closest('[data-mc]');
+    if (e.pointerType === 'mouse' || !e.pointerType) return;
+    if (d && +d.dataset.md !== MD) { e.preventDefault(); MD = +d.dataset.md; MC = D.departments[MD].cats[0]; megaDraw() }
+    else if (c && +c.dataset.mc !== MC) { e.preventDefault(); MC = +c.dataset.mc; megaDraw(true) }
+  });
+  if (!megaInit.b) {
+    megaInit.b = 1;
+    addEventListener('scroll', () => { if (Math.abs(scrollY - mmY) > 160 && !$('#mega:hover')) $('#hd').classList.remove('mm') }, { passive: true });
+    document.addEventListener('pointerdown', e => { if (!e.target.closest('#hd')) $('#hd').classList.remove('mm') });
+    addEventListener('keydown', e => { if (e.key === 'Escape') $('#hd').classList.remove('mm') });
+  }
 }
 function megaDraw(onlyP) {
   const x = x2(), d = D.departments[MD], cnt = f => D.products.filter(f).length;
   if (!onlyP) {
-    $('#mgd').innerHTML = D.departments.map((dd, i) => `<a href="/shop?d=${dd.id}" data-md="${i}" class="${i === MD ? 'on' : ''}">${ico(DI[dd.id], 1.4)}<span>${dd[L]}</span><sup>${cnt(p => dd.cats.includes(p.c))}</sup></a>`).join('');
-    $('#mgc').innerHTML = `<h6>${d[L]}</h6>` + d.cats.map(c => `<a href="/shop?c=${c}" data-mc="${c}">${catN(c)}<sup>${cnt(p => p.c === c)}</sup></a>`).join('') + `<a class="lk" href="/shop?d=${d.id}">${x.mmAll(d[L])} ${ar()}</a>`;
+    $('#mgd').innerHTML = `<h6>${t().depts}</h6>` + D.departments.map((dd, i) => `<a href="/shop?d=${dd.id}" data-md="${i}" class="${i === MD ? 'on' : ''}">${ico(DI[dd.id], 1.4)}<span>${dd[L]}</span><sup>${cnt(p => dd.cats.includes(p.c))}</sup></a>`).join('');
+    $('#mgc').innerHTML = `<h6>${d[L]}</h6>` + d.cats.map(c => `<a href="/shop?c=${c}" data-mc="${c}">${ico(CI[c], 1.3)}<span>${catN(c)}</span><sup>${cnt(p => p.c === c)}</sup></a>`).join('') + `<a class="lk" href="/shop?d=${d.id}">${x.mmAll(d[L])} ${ar()}</a>`;
   }
   $$('#mgc [data-mc]').forEach(a => a.classList.toggle('on', +a.dataset.mc === MC));
-  const pool = D.products.filter(p => MC >= 0 ? p.c === MC : d.cats.includes(p.c)).sort((a, b) => (b.i ? 1 : 0) - (a.i ? 1 : 0)).slice(0, 6);
-  const ttl = MC >= 0 ? catN(MC) : d[L];
-  $('#mgp').innerHTML = `<h6>${x.mmFeat} · ${ttl}</h6><div class="mgg">${pool.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${i}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b></span></a>`).join('')}</div>
-    <a class="btn dk sm" href="${MC >= 0 ? '/shop?c=' + MC : '/shop?d=' + d.id}">${x.mmAll(ttl)} ${ar()}</a>`;
+  const list = D.products.filter(p => p.c === MC).sort((a, b) => (b.i ? 1 : 0) - (a.i ? 1 : 0));
+  $('#mgp').innerHTML = `<div class="mgh"><h6>${catN(MC)} · ${list.length} ${t().items}</h6><a class="btn dk sm" href="/shop?c=${MC}">${x.mmAll(catN(MC))} ${ar()}</a></div>
+    <div class="mgg">${list.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${Math.min(i, 14)}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b>${p.d ? `<em>${esc(p.d)}</em>` : ''}</span></a>`).join('')}</div>`;
+  $('#mgp .mgg').scrollTop = 0;
+}
+
+/* mobile menu: full category tree */
+function mtree() {
+  const cnt = f => D.products.filter(f).length;
+  return `<details class="mtr"><summary>${t().shop}<i></i></summary><a class="mall" href="/shop">${t().all} <sup>${D.products.length}</sup></a>${D.departments.map(d => `<details><summary>${ico(DI[d.id], 1.4)}<span>${d[L]}</span><sup>${cnt(p => d.cats.includes(p.c))}</sup><i></i></summary><div>${d.cats.map(c => `<a href="/shop?c=${c}">${catN(c)}<sup>${cnt(p => p.c === c)}</sup></a>`).join('')}<a class="mall" href="/shop?d=${d.id}">${x2().mmAll(d[L])}</a></div></details>`).join('')}</details>`;
 }
