@@ -12,6 +12,7 @@ const IC = {
   down: '<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>', up: '<path d="M12 20V8M6 14l6-6 6 6M4 4h16"/>', tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.3"/>',
   out: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/>', img: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5L5 20"/>',
   check: '<path d="M5 12.5 10 17l9-10"/>', note: '<path d="M6 3.5h9l4 4V20a.5.5 0 0 1-.5.5h-12A.5.5 0 0 1 6 20z"/><path d="M14.5 3.5V8h4.5M9 12h7M9 15.5h5"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   pin: '<path d="M9 4h6l-1 5 3 3v1.5H7V12l3-3z"/><path d="M12 13.5V20"/>', pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>', sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>', moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>', back: '<path d="M15 6l-6 6 6 6"/>', box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'
 };
 const ico = (k, sw = 1.6) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
@@ -98,9 +99,9 @@ function shell() {
   <header class="top"><div class="tw">
     <a class="brand" href="/admin"><img src="/logo-dark.png" alt=""><span><b>ZAITOON</b><small>ADMIN</small></span></a>
     <label class="srch">${ico('search')}<input id="q" type="search" placeholder="Search name, brand, details…" autocomplete="off" enterkeyhint="search"></label>
-    <div class="tr"><button class="ib" id="nb" aria-label="Notes" title="Notes">${ico('note')}</button><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
+    <div class="tr"><button class="ib" id="hb" aria-label="History" title="History">${ico('clock')}</button><button class="ib" id="nb" aria-label="Notes" title="Notes">${ico('note')}</button><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
       <div class="mn"><button class="ib" id="mb" aria-label="Menu">${ico('menu')}</button><div class="md" id="md">
-        <button data-a="notes">${ico('note')}Notes</button><button data-a="cats">${ico('tag')}Categories</button><button data-a="exp">${ico('down')}Export CSV</button><button data-a="imp">${ico('up')}Import CSV</button>
+        <button data-a="notes">${ico('note')}Notes</button><button data-a="hist">${ico('clock')}History</button><button data-a="cats">${ico('tag')}Categories</button><button data-a="exp">${ico('down')}Export CSV</button><button data-a="imp">${ico('up')}Import CSV</button>
         <a href="/" target="_blank" rel="noopener">${ico('ext')}View website</a><button data-a="out">${ico('out')}Log out</button></div></div></div>
   </div></header>
   <main class="tw main">
@@ -116,9 +117,10 @@ function shell() {
   $('#q').oninput = e => { Q = e.target.value; N = PG; draw() };
   $('#add').onclick = () => openEdit(null);
   $('#nb').onclick = notesView;
+  $('#hb').onclick = historyView;
   $('#mb').onclick = e => { e.stopPropagation(); $('#md').classList.toggle('on') };
   document.addEventListener('click', () => $('#md') && $('#md').classList.remove('on'));
-  $('#md').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ notes: notesView, cats: catsView, exp: exportCSV, imp: () => $('#csvf').click(), out: logout })[a.dataset.a]() };
+  $('#md').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ notes: notesView, hist: historyView, cats: catsView, exp: exportCSV, imp: () => $('#csvf').click(), out: logout })[a.dataset.a]() };
   $('#csvf').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importCSV(f) };
   $('#fd').onchange = e => { F.d = e.target.value; F.c = -1; N = PG; draw() };
   $('#fc').onchange = e => { F.c = +e.target.value; N = PG; draw() };
@@ -308,6 +310,36 @@ async function notesView() {
   try { const r = await api('notes'); NOTES = r.notes; if (r.locked) toast('Older notes were saved with a previous security key and can’t be opened. New notes will work normally.', 'warn', 8000) }
   catch (e) { NOTES = NOTES || []; toast(esc(e.message), 'err', 5000) }
   list();
+}
+
+/* ---------- history of changes published from this dashboard ---------- */
+async function historyView() {
+  $('#md') && $('#md').classList.remove('on');
+  let page = 1, items = [], more = false, busy = false;
+  openSheet(`<div class="ed"><div class="eh"><button type="button" class="ib" data-close aria-label="Close">${ico('back')}</button><h2>History</h2><span></span></div>
+    <div class="eb"><p class="mut sm">Every change published from this dashboard, newest first.</p><div class="hl" id="hl"><div class="nl-e"><span class="spin"></span></div></div>
+    <div class="more"><button class="b lt sm" id="hm" hidden>Load older</button></div></div></div>`);
+  const day = t => new Date(t).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const time = t => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const draw = () => {
+    const el = $('#hl'); if (!el) return;
+    if (!items.length) { el.innerHTML = `<div class="nl-e">${ico('clock')}<b>No changes yet</b><span>When someone publishes from the dashboard, it shows up here.</span></div>`; return }
+    let last = '', h = '';
+    for (const it of items) {
+      const d = day(it.at); if (d !== last) { h += `<h4 class="hd">${d}</h4>`; last = d }
+      h += `<article class="hi"><div class="hi-h"><b>${esc(it.title)}</b><span>${time(it.at)}${it.by ? ' · ' + who(it.by) : ''}</span></div>
+        ${it.lines.length ? `<ul>${it.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : `<p class="mut sm">No details were recorded for this change.</p>`}</article>`;
+    }
+    el.innerHTML = h; $('#hm').hidden = !more;
+  };
+  const load = async () => {
+    if (busy) return; busy = true; const b = $('#hm'); if (b) b.disabled = true;
+    try { const r = await api('history?page=' + page); items = items.concat(r.items); more = r.more; page++; if (!r.items.length && more) { busy = false; return load() } draw() }
+    catch (e) { toast(esc(e.message), 'err', 5000); if (!items.length) $('#hl').innerHTML = '' }
+    busy = false; if (b) b.disabled = false;
+  };
+  $('#hm').onclick = load;
+  load();
 }
 
 /* ---------- csv ---------- */

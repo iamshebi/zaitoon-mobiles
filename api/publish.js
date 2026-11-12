@@ -16,9 +16,42 @@ function validate(c) {
   }
   return null;
 }
+// Human-readable summary of what changed, stored in the commit message for the admin History view.
+const ST = { '': 'In stock', out: 'Out of stock', soon: 'Coming soon' };
+const money = v => v ? 'AED ' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'no price';
+const label = p => { const b = (p.b || '').trim(), n = (p.n || '').trim(); return (b && !n.toLowerCase().startsWith(b.toLowerCase()) ? b + ' ' : '') + n };
+const clip = (s, n = 60) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1) + '…' : s };
+function describe(oldC, newC) {
+  const out = [], om = new Map((oldC.products || []).map(p => [p.id, p])), nm = new Map(newC.products.map(p => [p.id, p]));
+  const cat = (c, i) => (c.categories[i] || {}).en || '?';
+  for (const p of newC.products) {
+    const o = om.get(p.id);
+    if (!o) { out.push(`Added: ${clip(label(p))}${p.pr ? ' (' + money(p.pr) + ')' : ''}`); continue }
+    const ch = [];
+    if ((o.n || '') !== (p.n || '')) ch.push(`name “${clip(o.n, 40)}” → “${clip(p.n, 40)}”`);
+    if ((o.b || '') !== (p.b || '')) ch.push(`brand ${o.b || '—'} → ${p.b || '—'}`);
+    if ((o.d || '') !== (p.d || '')) ch.push('details updated');
+    if ((o.pr || 0) !== (p.pr || 0)) ch.push(!o.pr ? `price set to ${money(p.pr)}` : !p.pr ? `price removed (was ${money(o.pr)})` : `price ${money(o.pr)} → ${money(p.pr)}`);
+    if ((o.st || '') !== (p.st || '')) ch.push(`${ST[o.st || '']} → ${ST[p.st || '']}`);
+    if (!!o.h !== !!p.h) ch.push(p.h ? 'hidden from website' : 'shown on website');
+    if ((o.i || '') !== (p.i || '')) ch.push(p.i ? (o.i ? 'photo changed' : 'photo added') : 'photo removed');
+    if (o.c !== p.c) ch.push(`category ${cat(oldC, o.c)} → ${cat(newC, p.c)}`);
+    if (ch.length) out.push(`Edited ${clip(label(p))}: ${ch.join('; ')}`);
+  }
+  for (const o of oldC.products || []) if (!nm.has(o.id)) out.push(`Deleted: ${clip(label(o))}`);
+  if (JSON.stringify(oldC.categories) !== JSON.stringify(newC.categories) || JSON.stringify(oldC.departments) !== JSON.stringify(newC.departments)) out.push('Departments / categories updated');
+  return out;
+}
+async function readCatalog(R, f) {
+  let text = f.content && f.encoding === 'base64' ? Buffer.from(f.content, 'base64').toString('utf8') : '';
+  if (!text) { const bl = await gh(`${R}/git/blobs/${f.sha}`); text = Buffer.from(bl.content, 'base64').toString('utf8') }
+  return JSON.parse(text);
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
-  if (!fromAdmin(req) || !authed(req)) return json(res, 401, { error: 'Please log in again.' });
+  const who = authed(req);
+  if (!fromAdmin(req) || !who) return json(res, 401, { error: 'Please log in again.' });
   if (!configured().github) return json(res, 503, { error: 'GitHub key (GITHUB_TOKEN) is not set up yet.' });
   let b; try { b = await readBody(req) } catch (_) { return json(res, 400, { error: 'Bad request' }) }
   const bad = validate(b.catalog); if (bad) return json(res, 400, { error: bad });
@@ -39,7 +72,9 @@ module.exports = async (req, res) => {
       tree.push({ path: f.path, mode: '100644', type: 'blob', sha: bl.sha });
     }
     const t = await gh(`${R}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: commit.tree.sha, tree }) });
-    const msg = String(b.message || 'Update products').slice(0, 200) + '\n\nSaved from the Zaitoon admin dashboard.';
+    let lines = []; try { lines = describe(await readCatalog(R, cur), b.catalog) } catch (_) { }
+    if (lines.length > 80) lines = lines.slice(0, 80).concat(`…and ${lines.length - 80} more changes`);
+    const msg = String(b.message || 'Update products').slice(0, 200) + `\n\nBy: ${who}\n` + lines.map(l => '• ' + l).join('\n') + '\n\nSaved from the Zaitoon admin dashboard.';
     const nc = await gh(`${R}/git/commits`, { method: 'POST', body: JSON.stringify({ message: msg, tree: t.sha, parents: [head] }) });
     await gh(`${R}/git/refs/heads/${encodeURIComponent(e.branch)}`, { method: 'PATCH', body: JSON.stringify({ sha: nc.sha }) });
     const after = await gh(`${R}/contents/catalog.json?ref=${nc.sha}`);

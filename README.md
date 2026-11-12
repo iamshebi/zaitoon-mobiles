@@ -23,3 +23,7 @@ The Notes button in the admin top bar keeps private notes shared by all admins. 
 (key derived from `SESSION_SECRET`) in `data/admin-notes.enc` in the repo; saving a note does not redeploy the
 site (`ignoreCommand` in vercel.json) and the file is never served (`.vercelignore`). Changing `SESSION_SECRET`
 makes existing notes unreadable, so copy them out first if you rotate it.
+
+### Admin history
+The History button lists every change published from the dashboard (who, when, and what changed per item).
+It reads the GitHub commit history; each admin publish writes a short change summary into its commit message.
