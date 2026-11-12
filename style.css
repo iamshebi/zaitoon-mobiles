@@ -643,3 +643,21 @@ body.mo .mnav .mtr a{opacity:1;transform:none}
 .chip.st-out{background:#FBEAE7;color:#B4382B;box-shadow:none;font-weight:600}
 .chip.st-soon{background:#F3E9D3;color:#7a5a12;box-shadow:none;font-weight:600}
 .chip.inl{position:static;display:inline-block;margin-inline-start:10px;vertical-align:1px;letter-spacing:.04em;text-transform:none}
+
+/* prices + buy now */
+.prc{display:block;font-weight:600;font-size:16px;letter-spacing:-.01em;color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
+.prc.big{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.025em;margin-top:0}
+.pprice{margin-top:18px}
+.c .ft.has-pr{justify-content:flex-start;gap:6px;flex-wrap:wrap}
+.wa.buy{background:var(--gold2);color:#fff}
+.wa.buy:hover{background:var(--ink);color:#fff}
+.plb{display:flex;gap:6px;flex:none;margin-inline-end:8px}
+.plist .pd .prc{display:inline;font-size:14px;margin:0 0 0 10px;color:var(--ink)}
+.sr-t small .sp-pr{color:var(--ink);font-weight:600}
+.mt em.mp{color:var(--ink);font-weight:600}
+@media (max-width:640px){
+  .prc{font-size:15px}
+  .c .ft.has-pr{flex-direction:column;align-items:stretch}
+  .plb{margin:0 0 12px;flex-wrap:wrap}
+  .plist li{flex-wrap:wrap}
+}

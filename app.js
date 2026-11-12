@@ -23,7 +23,7 @@ en: {
   fBig: 'Find it here. Ask us on WhatsApp.', fShop: 'Shop', fStore: 'Store', rights: 'All rights reserved',
   search: 'Search products, brands, models…', sort: ['Featured', 'Name A–Z', 'Brand A–Z'],
   showing: (n, t) => `Showing <b>${n}</b> of <b>${t}</b>`, more: 'Show more', none: 'Nothing matches that yet', noneP: 'Try another search, or ask us. We may have it in store.',
-  shopP: 'Browse everything in store. No prices online: tap enquire and we’ll reply on WhatsApp with availability and today’s best price.',
+  shopP: 'Browse everything in store. Tap Buy now or Enquire and we’ll reply on WhatsApp with availability and today’s best price.',
   askCat: c => `Can’t find it in ${c}?`, askCatP: 'Tell us what you’re after and we’ll check the shelves for you.',
   enq: 'Enquire', enqL: 'Enquire on WhatsApp', callUs: 'Call the store',
   pBrand: 'Brand', pCat: 'Category', pDept: 'Department', pAv: 'Availability', pAvV: 'Ask on WhatsApp', pDel: 'Delivery', pDelV: 'Across Ras Al Khaimah',
@@ -53,7 +53,7 @@ ar: {
   fBig: 'اختر منتجك هنا، واسألنا على واتساب.', fShop: 'المتجر', fStore: 'المحل', rights: 'جميع الحقوق محفوظة',
   search: 'ابحث عن منتج أو ماركة أو موديل…', sort: ['المميز', 'الاسم أ–ي', 'الماركة أ–ي'],
   showing: (n, t) => `عرض <b>${n}</b> من <b>${t}</b>`, more: 'عرض المزيد', none: 'لا توجد نتائج', noneP: 'جرّب بحثاً آخر أو اسألنا، قد يكون متوفراً في المحل.',
-  shopP: 'تصفح كل ما في المتجر. لا أسعار على الموقع: اضغط استفسار ونرد عليك على واتساب بالتوفر وأفضل سعر اليوم.',
+  shopP: 'تصفح كل ما في المتجر. اضغط اشترِ الآن أو استفسار ونرد عليك على واتساب بالتوفر وأفضل سعر اليوم.',
   askCat: c => `لم تجد ما تبحث عنه في ${c}؟`, askCatP: 'أخبرنا بما تريد ونبحث لك في المحل.',
   enq: 'استفسار', enqL: 'استفسر على واتساب', callUs: 'اتصل بالمحل',
   pBrand: 'الماركة', pCat: 'الفئة', pDept: 'القسم', pAv: 'التوفر', pAvV: 'اسأل على واتساب', pDel: 'التوصيل', pDelV: 'في جميع أنحاء رأس الخيمة',
@@ -118,6 +118,13 @@ const catN = i => D.categories[i][L];
 const deptOf = c => D.departments.find(d => d.cats.includes(c));
 const purl = p => location.origin + '/product?id=' + encodeURIComponent(p.id);
 const waP = p => wa(t().waP(full(p), p.d, D.categories[p.c].en, purl(p)));
+const hasPr = p => typeof p.pr === 'number' && p.pr > 0;
+const fmtPr = v => 'AED ' + Number(v).toLocaleString('en-US', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 });
+const prTag = (p, cls = '') => hasPr(p) ? `<span class="prc ${cls}" dir="ltr">${fmtPr(p.pr)}</span>` : '';
+const BUY = { en: { b: 'Buy now', bl: 'Buy now on WhatsApp', m: (n, d, pr, u) => `Hello Al Zaitoon 👋\nI'd like to buy:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• Price: ${pr}\n\nPlease confirm availability, payment and delivery or pickup.\n${u}` },
+  ar: { b: 'اشترِ الآن', bl: 'اشترِ الآن عبر واتساب', m: (n, d, pr, u) => `مرحباً الزيتون 👋\nأود شراء:\n\n• ${n}${d ? `\n• ${d}` : ''}\n• السعر: ${pr}\n\nيرجى تأكيد التوفر وطريقة الدفع والتوصيل أو الاستلام.\n${u}` } };
+const waBuy = p => wa(BUY[L].m(full(p), p.d, fmtPr(p.pr), purl(p)));
+const buyBtns = p => hasPr(p) ? `<a class="wa buy" target="_blank" rel="noopener" href="${waBuy(p)}">${WAI}${BUY[L].b}</a><a class="wa" target="_blank" rel="noopener" href="${waP(p)}">${t().enq}</a>` : `<a class="wa" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${t().enq}</a>`;
 const ar = () => `<svg class="ar" viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${P.arrow}</svg>`;
 const lines = arr => arr.map((s, i) => `<span class="ln" style="--d:${.15 + i * .1}s"><span>${s}</span></span>`).join('');
 
@@ -130,8 +137,8 @@ const stChip = (p, cls = '') => p.st && STL[p.st] ? `<span class="chip st-${p.st
 const card = (p, i = 0) => `<article class="c" style="--i:${i}">
   <a class="cv" href="/product?id=${encodeURIComponent(p.id)}" aria-label="${esc(full(p))}"></a>
   <div class="im">${visual(p)}${stChip(p)}</div>
-  <div class="bd"><div class="br">${esc(p.b || catN(p.c))}</div><div class="nm">${esc(p.n)}</div>${p.d ? `<div class="dt">${esc(p.d)}</div>` : ''}
-  <div class="ft"><span class="cat">${esc(catN(p.c))}</span><a class="wa" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${t().enq}</a></div></div></article>`;
+  <div class="bd"><div class="br">${esc(p.b || catN(p.c))}</div><div class="nm">${esc(p.n)}</div>${p.d ? `<div class="dt">${esc(p.d)}</div>` : ''}${prTag(p)}
+  <div class="ft${hasPr(p) ? ' has-pr' : ''}">${hasPr(p) ? '' : `<span class="cat">${esc(catN(p.c))}</span>`}${buyBtns(p)}</div></div></article>`;
 
 /* chrome */
 function chrome() {
@@ -199,7 +206,7 @@ function home() {
 
   <section class="sec"><div class="w">
     <div class="sh"><div><span class="eyb rv">${x.phL}</span><h2 class="rv" style="--d:.08s">${x.phH}</h2></div><a class="lk rv" href="/shop?c=0">${x.phAll} ${ar()}</a></div>
-    <ul class="plist">${phones.map((p, i) => `<li class="rv" style="--d:${(i % 5) * .05}s"><a class="pl" href="/product?id=${p.id}"><span class="pb">${esc(p.b)}</span><span class="pn serif">${esc(p.n)}</span><span class="pd">${esc(p.d || '')}</span></a><a class="wa" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enq}</a></li>`).join('')}</ul>
+    <ul class="plist">${phones.map((p, i) => `<li class="rv" style="--d:${(i % 5) * .05}s"><a class="pl" href="/product?id=${p.id}"><span class="pb">${esc(p.b)}</span><span class="pn serif">${esc(p.n)}</span><span class="pd">${esc(p.d || '')}${hasPr(p) ? ` ${prTag(p)}` : ''}</span></a><span class="plb">${buyBtns(p)}</span></li>`).join('')}</ul>
   </div></section>
 
   <section class="sec"><div class="w"><span class="eyb rv">${x.prL}</span>
@@ -320,7 +327,8 @@ function product() {
       <div class="br rv in" style="--d:.05s">${esc(p.b || catN(p.c))}${stChip(p, 'inl')}</div>
       <h1>${lines([esc(p.n)])}</h1>
       ${p.d ? `<p class="det rv in" style="--d:.25s">${esc(p.d)}</p>` : ''}
-      <div class="row rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a><a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>
+      ${hasPr(p) ? `<div class="pprice rv in" style="--d:.28s">${prTag(p, 'big')}</div>` : ''}
+      <div class="row rv in" style="--d:.32s">${hasPr(p) ? `<a class="btn gd" target="_blank" rel="noopener" href="${waBuy(p)}">${WAI}${BUY[L].bl}</a><a class="btn lt" target="_blank" rel="noopener" href="${waP(p)}">${x.enqL}</a>` : `<a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a>`}<a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>
       <div class="ppay rv in" style="--d:.36s">${x2().payIn} ${payLogos()}</div>
       <div class="note rv in" style="--d:.4s">${ico('info', 1.5)}<span>${x.pNote}</span></div>
       <ul class="spec rv in" style="--d:.48s">
@@ -485,7 +493,7 @@ function drawS() {
   const cats = D.categories.map((c, i) => ({ c, i })).filter(o => (o.c.en + ' ' + o.c.ar).toLowerCase().includes(ql)).slice(0, 6);
   const hl = s => esc(s).replace(new RegExp('(' + qv.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>');
   out.innerHTML = (cats.length ? `<h6>${x.srchCats}</h6><div class="sr-ch">${cats.map(o => `<a href="/shop?c=${o.i}">${ico(CI[o.i], 1.4)}${o.c[L]}</a>`).join('')}</div>` : '') +
-    (r.length ? `<h6>${x.srchProd}</h6><div class="sr-l">${r.slice(0, 8).map(p => `<a data-r href="/product?id=${encodeURIComponent(p.id)}"><span class="sr-im">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.3)}</span><span class="sr-t"><b>${hl(p.n)}</b><small>${esc(p.b || '')}${p.b ? ' · ' : ''}${esc(catN(p.c))}</small></span>${ico('arrow', 1.5)}</a>`).join('')}</div>
+    (r.length ? `<h6>${x.srchProd}</h6><div class="sr-l">${r.slice(0, 8).map(p => `<a data-r href="/product?id=${encodeURIComponent(p.id)}"><span class="sr-im">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.3)}</span><span class="sr-t"><b>${hl(p.n)}</b><small>${esc(p.b || '')}${p.b ? ' · ' : ''}${esc(catN(p.c))}${hasPr(p) ? ' · <b class="sp-pr" dir="ltr">' + fmtPr(p.pr) + '</b>' : ''}</small></span>${ico('arrow', 1.5)}</a>`).join('')}</div>
       <a class="btn dk sr-all" href="/shop?q=${encodeURIComponent(qv)}">${x.srchAll(r.length)} ${ar()}</a>`
       : `<div class="sr-no">${x.srchNone}<a class="btn gd sm" target="_blank" rel="noopener" href="${wa(t().hello + qv)}">${WAI}${t().ask}</a></div>`);
 }
@@ -543,7 +551,7 @@ function megaDraw(onlyP) {
   $$('#mgc [data-mc]').forEach(a => a.classList.toggle('on', +a.dataset.mc === MC));
   const list = D.products.filter(p => p.c === MC).sort((a, b) => (b.i ? 1 : 0) - (a.i ? 1 : 0));
   $('#mgp').innerHTML = `<div class="mgh"><h6>${catN(MC)} · ${list.length} ${t().items}</h6><a class="btn dk sm" href="/shop?c=${MC}">${x.mmAll(catN(MC))} ${ar()}</a></div>
-    <div class="mgg">${list.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${Math.min(i, 14)}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b>${p.d ? `<em>${esc(p.d)}</em>` : ''}</span></a>`).join('')}</div>`;
+    <div class="mgg">${list.map((p, i) => `<a href="/product?id=${encodeURIComponent(p.id)}" style="--i:${Math.min(i, 14)}"><span class="mi">${p.i ? `<img src="/products/${p.i}" alt="" loading="lazy">` : ico(CI[p.c], 1.2)}</span><span class="mt"><small>${esc(p.b || catN(p.c))}</small><b>${esc(p.n)}</b>${hasPr(p) ? `<em class="mp" dir="ltr">${fmtPr(p.pr)}</em>` : p.d ? `<em>${esc(p.d)}</em>` : ''}</span></a>`).join('')}</div>`;
   $('#mgp .mgg').scrollTop = 0;
 }
 

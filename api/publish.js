@@ -12,6 +12,7 @@ function validate(c) {
     if (!Number.isInteger(p.c) || p.c < 0 || p.c >= c.categories.length) return `Product ${p.id} has an invalid category.`;
     for (const k of ['b', 'd', 'i']) if (p[k] != null && typeof p[k] !== 'string') return `Product ${p.id} has an invalid ${k}.`;
     if (p.st != null && !['out', 'soon'].includes(p.st)) return `Product ${p.id} has an invalid stock status.`;
+    if (p.pr != null && !(typeof p.pr === 'number' && isFinite(p.pr) && p.pr > 0 && p.pr < 10000000)) return `Product ${p.id} has an invalid price.`;
   }
   return null;
 }

@@ -11,7 +11,7 @@ const IC = {
   ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   down: '<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>', up: '<path d="M12 20V8M6 14l6-6 6 6M4 4h16"/>', tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8" r="1.3"/>',
   out: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/>', img: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5L5 20"/>',
-  check: '<path d="M5 12.5 10 17l9-10"/>', back: '<path d="M15 6l-6 6 6 6"/>', box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'
+  check: '<path d="M5 12.5 10 17l9-10"/>', sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>', moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>', back: '<path d="M15 6l-6 6 6 6"/>', box: '<path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/>'
 };
 const ico = (k, sw = 1.6) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
 const ST = { '': 'In stock', out: 'Out of stock', soon: 'Coming soon' };
@@ -95,9 +95,9 @@ async function load() {
 function shell() {
   $('#root').innerHTML = `
   <header class="top"><div class="tw">
-    <a class="brand" href="/admin"><img src="/logo-dark.png" alt=""><span><b>ZAITOON</b><small>ADMIN</small></span></a>
+    <a class="brand" href="/admin"><img class="lgd" src="/logo-dark.png" alt=""><img class="lgw" src="/logo.png" alt=""><span><b>ZAITOON</b><small>ADMIN</small></span></a>
     <label class="srch">${ico('search')}<input id="q" type="search" placeholder="Search name, brand, details…" autocomplete="off" enterkeyhint="search"></label>
-    <div class="tr"><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
+    <div class="tr"><button class="ib thm" id="thm" aria-label="Switch light or dark mode" title="Light / dark"></button><button class="b gd" id="add">${ico('plus', 2)}<span>Add item</span></button>
       <div class="mn"><button class="ib" id="mb" aria-label="Menu">${ico('menu')}</button><div class="md" id="md">
         <button data-a="cats">${ico('tag')}Categories</button><button data-a="exp">${ico('down')}Export CSV</button><button data-a="imp">${ico('up')}Import CSV</button>
         <a href="/" target="_blank" rel="noopener">${ico('ext')}View website</a><button data-a="out">${ico('out')}Log out</button></div></div></div>
@@ -114,6 +114,8 @@ function shell() {
   <input type="file" id="csvf" accept=".csv,text/csv" hidden>`;
   $('#q').oninput = e => { Q = e.target.value; N = PG; draw() };
   $('#add').onclick = () => openEdit(null);
+  const thIco = () => { $('#thm').innerHTML = ico(document.documentElement.classList.contains('dk') ? 'sun' : 'moon') };
+  thIco(); $('#thm').onclick = () => { const dk = document.documentElement.classList.toggle('dk'); try { localStorage.setItem('zm-admin-theme', dk ? 'dark' : 'light') } catch (_) { } document.querySelector('meta[name=theme-color]').content = dk ? '#0F0E0C' : '#F6F4EF'; thIco() };
   $('#mb').onclick = e => { e.stopPropagation(); $('#md').classList.toggle('on') };
   document.addEventListener('click', () => $('#md') && $('#md').classList.remove('on'));
   $('#md').onclick = e => { const a = e.target.closest('[data-a]'); if (!a) return; ({ cats: catsView, exp: exportCSV, imp: () => $('#csvf').click(), out: logout })[a.dataset.a]() };
@@ -124,9 +126,13 @@ function shell() {
   $('#mo').onclick = () => { N += PG; draw() };
   $('#list').onclick = e => {
     const tg = e.target.closest('[data-tg]'); if (tg) { e.stopPropagation(); const p = byId(tg.dataset.tg); if (p.h) delete p.h; else p.h = 1; touch(); return }
+    if (e.target.closest('select,input,label.pq')) return;
     const r = e.target.closest('[data-id]'); if (r) openEdit(r.dataset.id);
   };
-  $('#list').onchange = e => { const s = e.target.closest('[data-st]'); if (!s) return; const p = byId(s.dataset.st); if (s.value) p.st = s.value; else delete p.st; touch() };
+  $('#list').onchange = e => {
+    const pi = e.target.closest('[data-pr]'); if (pi) { const p = byId(pi.dataset.pr), v = parseFloat(pi.value.replace(/[^0-9.]/g, '')); if (v > 0) p.pr = Math.round(v * 100) / 100; else delete p.pr; saveDraft(); updBar(); pi.closest('.it').querySelector('small').innerHTML = esc(p.b || 'No brand') + (isChanged(p) ? '<i class="dot" title="Changed"></i>' : ''); return }
+    const s = e.target.closest('[data-st]'); if (!s) return; const p = byId(s.dataset.st); if (s.value) p.st = s.value; else delete p.st; touch() };
+  $('#list').onkeydown = e => { if (e.key === 'Enter' && e.target.matches('[data-pr]')) e.target.blur() };
   $('#disc').onclick = () => { if (confirm('Discard all unpublished changes?')) { CAT = JSON.parse(BASE); IMGS = {}; saveDraft(); draw() } };
   $('#pubb').onclick = publish;
   $('#sheet').onclick = e => { if (e.target.closest('[data-close]')) closeSheet() };
@@ -135,24 +141,25 @@ function shell() {
   draw();
 }
 function touch() { saveDraft(); draw() }
+function updBar() { const ch = diffCount(); $('#pub').classList.toggle('on', ch > 0); $('#pubt').innerHTML = `<b>${ch}</b> change${ch === 1 ? '' : 's'} not published yet` }
 
 /* ---------- list ---------- */
 function filtered() {
   const ws = Q.toLowerCase().split(/\s+/).filter(Boolean), d = CAT.departments.find(x => x.id === F.d);
   return prods().filter(p => (!d || d.cats.includes(p.c)) && (F.c < 0 || p.c === F.c) &&
-    (F.s === 'all' || (F.s === 'live' && !p.h) || (F.s === 'hidden' && p.h) || (F.s === 'out' && p.st === 'out') || (F.s === 'soon' && p.st === 'soon') || (F.s === 'nophoto' && !p.i) || (F.s === 'changed' && isChanged(p))) &&
+    (F.s === 'all' || (F.s === 'live' && !p.h) || (F.s === 'hidden' && p.h) || (F.s === 'out' && p.st === 'out') || (F.s === 'soon' && p.st === 'soon') || (F.s === 'nophoto' && !p.i) || (F.s === 'priced' && p.pr > 0) || (F.s === 'noprice' && !(p.pr > 0)) || (F.s === 'changed' && isChanged(p))) &&
     (!ws.length || ws.every(w => (p.b + ' ' + p.n + ' ' + (p.d || '') + ' ' + catName(p.c) + ' ' + p.id).toLowerCase().includes(w))));
 }
 function draw() {
   const P = prods(), cnt = f => P.filter(f).length;
-  $('#stats').innerHTML = [['Total items', P.length, 'all'], ['On website', cnt(p => !p.h), 'live'], ['Hidden', cnt(p => p.h), 'hidden'], ['Out of stock', cnt(p => p.st === 'out'), 'out'], ['No photo', cnt(p => !p.i), 'nophoto'], ['Categories', CAT.categories.length, null]]
+  $('#stats').innerHTML = [['Total items', P.length, 'all'], ['On website', cnt(p => !p.h), 'live'], ['Hidden', cnt(p => p.h), 'hidden'], ['Out of stock', cnt(p => p.st === 'out'), 'out'], ['No photo', cnt(p => !p.i), 'nophoto'], ['With price', cnt(p => p.pr > 0), 'priced']]
     .map(s => `<button class="st${s[2] && F.s === s[2] ? ' on' : ''}" ${s[2] ? `data-s="${s[2]}"` : 'data-a="cats"'}><b>${s[1]}</b><small>${s[0]}</small></button>`).join('');
   $('#stats').onclick = e => { const b = e.target.closest('.st'); if (!b) return; if (b.dataset.a) return catsView(); F.s = b.dataset.s; N = PG; draw() };
   $('#fd').innerHTML = `<option value="">All departments</option>` + CAT.departments.map(d => `<option value="${d.id}"${F.d === d.id ? ' selected' : ''}>${esc(d.en)} (${cnt(p => d.cats.includes(p.c))})</option>`).join('');
   const dd = CAT.departments.find(x => x.id === F.d), cs = dd ? dd.cats : CAT.categories.map((_, i) => i);
   $('#fc').innerHTML = `<option value="-1">All categories</option>` + cs.map(c => `<option value="${c}"${F.c === c ? ' selected' : ''}>${esc(catName(c))} (${cnt(p => p.c === c)})</option>`).join('');
   const ch = diffCount();
-  $('#fs').innerHTML = [['all', 'All'], ['live', 'On website'], ['hidden', 'Hidden'], ['out', 'Out of stock'], ['soon', 'Coming soon'], ['nophoto', 'No photo'], ['changed', `Changed${ch ? ' · ' + ch : ''}`]].map(s => `<button data-s="${s[0]}" class="${F.s === s[0] ? 'on' : ''}">${s[1]}</button>`).join('');
+  $('#fs').innerHTML = [['all', 'All'], ['live', 'On website'], ['hidden', 'Hidden'], ['out', 'Out of stock'], ['soon', 'Coming soon'], ['nophoto', 'No photo'], ['priced', 'With price'], ['noprice', 'No price'], ['changed', `Changed${ch ? ' · ' + ch : ''}`]].map(s => `<button data-s="${s[0]}" class="${F.s === s[0] ? 'on' : ''}">${s[1]}</button>`).join('');
   const L = filtered();
   $('#res').innerHTML = `<b>${L.length}</b> item${L.length === 1 ? '' : 's'}${Q ? ` for “${esc(Q)}”` : ''}`;
   $('#list').innerHTML = L.length ? L.slice(0, N).map(row).join('') : `<div class="empty">${ico('box', 1.2)}<b>No items here</b><span>Try another search or filter, or add a new item.</span></div>`;
@@ -164,7 +171,7 @@ function row(p) {
   return `<article class="it${p.h ? ' hid' : ''}" data-id="${esc(p.id)}" tabindex="0">
     <span class="th">${s ? `<img src="${s}" alt="" loading="lazy">` : ico('img', 1.3)}</span>
     <span class="tx"><small>${esc(p.b || 'No brand')}${c ? '<i class="dot" title="Changed"></i>' : ''}</small><b>${esc(p.n)}</b><em>${esc(p.d || '')}</em><span class="ct">${esc(catName(p.c))}</span></span>
-    <span class="ac"><select data-st="${esc(p.id)}" class="ss ${p.st || 'in'}" aria-label="Stock">${Object.entries(ST).map(([k, v]) => `<option value="${k}"${(p.st || '') === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
+    <span class="ac"><label class="pq"><span>AED</span><input data-pr="${esc(p.id)}" type="text" inputmode="decimal" autocomplete="off" placeholder="Price" value="${p.pr ?? ''}" aria-label="Price in AED"></label><select data-st="${esc(p.id)}" class="ss ${p.st || 'in'}" aria-label="Stock">${Object.entries(ST).map(([k, v]) => `<option value="${k}"${(p.st || '') === k ? ' selected' : ''}>${v}</option>`).join('')}</select>
     <button class="vis${p.h ? '' : ' on'}" data-tg="${esc(p.id)}" title="${p.h ? 'Hidden from website' : 'Shown on website'}">${ico(p.h ? 'eyeoff' : 'eye')}<span>${p.h ? 'Hidden' : 'Live'}</span></button></span>
   </article>`;
 }
@@ -185,6 +192,7 @@ function openEdit(id) {
       <label>Product name *<input name="n" required maxlength="140" value="${esc(p.n)}" placeholder="e.g. iPhone 17 Pro 256GB"></label>
       <label>Brand<input name="b" maxlength="60" list="bl" value="${esc(p.b)}" placeholder="e.g. Apple"><datalist id="bl">${brands.map(b => `<option value="${esc(b)}">`).join('')}</datalist></label>
       <label>Details / variants<textarea name="d" rows="2" maxlength="300" placeholder="Colours, storage, version…">${esc(p.d || '')}</textarea></label>
+      <label>Price (AED)<input name="pr" type="text" inputmode="decimal" autocomplete="off" pattern="[0-9.,\s]*" placeholder="Leave empty to show Enquire only" value="${p.pr ?? ''}"><small class="hint">With a price, the website shows the price and a Buy now button (orders come to WhatsApp).</small></label>
       <label>Category<select name="c">${catOptions(p.c)}</select></label>
       <div class="lbl">Stock</div><div class="seg" id="seg">${Object.entries(ST).map(([k, v]) => `<button type="button" data-v="${k}" class="${(p.st || '') === k ? 'on' : ''}">${v}</button>`).join('')}</div>
       <label class="sw"><input type="checkbox" name="live" ${p.h ? '' : 'checked'}><span class="tg"></span><span><b>Show on website</b><small>Turn off to hide this item without deleting it.</small></span></label>
@@ -202,12 +210,13 @@ function openEdit(id) {
     q.n = String(f.get('n')).trim(); q.b = String(f.get('b')).trim(); const d = String(f.get('d')).trim(); q.c = +f.get('c');
     if (!q.n) return toast('Please enter a product name.', 'err');
     if (d) q.d = d; else delete q.d; if (!q.b) q.b = '';
+    const pr = parseFloat(String(f.get('pr') || '').replace(/[^0-9.]/g, '')); if (pr > 0) q.pr = Math.round(pr * 100) / 100; else delete q.pr;
     if (f.get('live')) delete q.h; else q.h = 1;
     if (!q.st) delete q.st;
     if (EDIT.isNew) q.id = uid((q.b && !q.n.toLowerCase().startsWith(q.b.toLowerCase()) ? q.b + ' ' : '') + q.n);
     if (EDIT.img) { const fn = `${q.id.slice(0, 80)}-${Math.random().toString(36).slice(2, 6)}.${EDIT.img.ext}`; IMGS['products/' + fn] = EDIT.img.b64; if (q.i && IMGS['products/' + q.i]) delete IMGS['products/' + q.i]; q.i = fn }
     if (!q.i) delete q.i;
-    const ord = { id: q.id, c: q.c, b: q.b, n: q.n }; if (q.d) ord.d = q.d; if (q.i) ord.i = q.i; if (q.st) ord.st = q.st; if (q.h) ord.h = 1;
+    const ord = { id: q.id, c: q.c, b: q.b, n: q.n }; if (q.d) ord.d = q.d; if (q.i) ord.i = q.i; if (q.pr) ord.pr = q.pr; if (q.st) ord.st = q.st; if (q.h) ord.h = 1;
     if (EDIT.isNew) CAT.products.unshift(ord); else CAT.products[prods().findIndex(x => x.id === q.id)] = ord;
     const wasNew = EDIT.isNew; closeSheet(); touch(); toast(wasNew ? 'Item added. Publish to put it on the website.' : 'Saved. Publish to update the website.', 'ok');
   };
@@ -257,10 +266,10 @@ function catsView() {
 }
 
 /* ---------- csv ---------- */
-const CSVH = ['id', 'brand', 'name', 'details', 'department', 'category', 'stock', 'visible', 'photo'];
+const CSVH = ['id', 'brand', 'name', 'details', 'price_aed', 'department', 'category', 'stock', 'visible', 'photo'];
 function exportCSV() {
   const q = v => { v = String(v ?? ''); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v };
-  const rows = [CSVH.join(',')].concat(prods().map(p => [p.id, p.b, p.n, p.d || '', (dept(p.c) || {}).en || '', catName(p.c), ST[p.st || ''], p.h ? 'no' : 'yes', p.i || ''].map(q).join(',')));
+  const rows = [CSVH.join(',')].concat(prods().map(p => [p.id, p.b, p.n, p.d || '', p.pr || '', (dept(p.c) || {}).en || '', catName(p.c), ST[p.st || ''], p.h ? 'no' : 'yes', p.i || ''].map(q).join(',')));
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8' }));
   a.download = `zaitoon-products-${new Date().toISOString().slice(0, 10)}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   toast('Exported. Open it in Excel, edit, then use Import CSV.', 'ok');
@@ -294,6 +303,7 @@ async function importCSV(file) {
     const isNew = !p; if (isNew) { p = { id: '', c: ci, b: '', n: '' } }
     p.n = name; if (g('brand') != null) p.b = g('brand'); p.c = ci;
     if (g('details') != null) { if (g('details')) p.d = g('details'); else delete p.d }
+    const gp = g('price_aed') != null ? g('price_aed') : g('price'); if (gp != null) { const v = parseFloat(gp.replace(/[^0-9.]/g, '')); if (v > 0) p.pr = Math.round(v * 100) / 100; else delete p.pr }
     if (g('stock') != null) { const s = stIx(g('stock')); if (s) p.st = s; else delete p.st }
     if (g('visible') != null) { if (/^(no|false|0|hidden)$/i.test(g('visible'))) p.h = 1; else delete p.h }
     if (isNew) { let id = slug((p.b ? p.b + ' ' : '') + p.n), k2 = id, j = 2; while (next.find(x => x.id === k2)) k2 = id + '-' + j++; p.id = k2; next.push(p); add++ } else up++;
