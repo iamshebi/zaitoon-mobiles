@@ -65,7 +65,9 @@ body.mo .burger i::after{top:0;transform:rotate(-45deg)}
 .mnav{position:fixed;left:0;right:0;top:76px;bottom:0;height:calc(100dvh - 76px);z-index:39;visibility:hidden;background:var(--bg);padding:24px clamp(20px,4vw,48px);display:flex;flex-direction:column;gap:2px;clip-path:inset(0 0 100% 0);transition:clip-path .7s var(--e2);overflow:auto}
 body.mo .mnav{clip-path:inset(0);visibility:visible}
 body.mo{overflow:hidden}
-body.mo header{background:var(--bg);box-shadow:0 1px 0 var(--line)}
+html:has(body.mo){overflow:hidden}
+.mnav{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+body.mo header{position:fixed;top:0;left:0;right:0;background:var(--bg);box-shadow:0 1px 0 var(--line)}
 .mnav{transition:clip-path .7s var(--e2),visibility 0s linear .7s}
 body.mo .mnav{transition:clip-path .7s var(--e2),visibility 0s}
 .mnav a{font-family:var(--serif);font-size:36px;line-height:1.25;padding:6px 0;border-bottom:1px solid var(--line);opacity:0;transform:translateY(20px);transition:.6s var(--e)}

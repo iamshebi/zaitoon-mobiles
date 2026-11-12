@@ -167,6 +167,15 @@ function chrome() {
   addEventListener('keydown', e => { if (e.key === 'Escape') document.body.classList.remove('mo') });
   $$('.mnav a').forEach(a => a.addEventListener('click', () => document.body.classList.remove('mo')));
 }
+// Freeze the page behind the mobile menu (iOS/Android ignore overflow:hidden on body).
+(() => {
+  let y = null; const b = document.body;
+  new MutationObserver(() => {
+    const on = b.classList.contains('mo');
+    if (on && y === null) { y = scrollY; Object.assign(b.style, { position: 'fixed', top: -y + 'px', left: '0', right: '0', width: '100%' }) }
+    else if (!on && y !== null) { const t = y; y = null; ['position', 'top', 'left', 'right', 'width'].forEach(k => b.style[k] = ''); window.scrollTo({ top: t, behavior: 'instant' }) }
+  }).observe(b, { attributes: true, attributeFilter: ['class'] });
+})();
 const swap = fn => document.startViewTransition ? document.startViewTransition(fn) : fn();
 
 /* HOME */
