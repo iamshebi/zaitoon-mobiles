@@ -639,3 +639,7 @@ html[dir=rtl] .mtr details>div{padding:0 36px 12px 4px}
 .mnav .mtr a.mall{color:var(--gold);font-weight:500!important;border-bottom:0}
 .mnav .mtr>a.mall{padding:12px 4px}
 body.mo .mnav .mtr a{opacity:1;transform:none}
+/* stock badges */
+.chip.st-out{background:#FBEAE7;color:#B4382B;box-shadow:none;font-weight:600}
+.chip.st-soon{background:#F3E9D3;color:#7a5a12;box-shadow:none;font-weight:600}
+.chip.inl{position:static;display:inline-block;margin-inline-start:10px;vertical-align:1px;letter-spacing:.04em;text-transform:none}

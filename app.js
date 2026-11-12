@@ -125,9 +125,11 @@ const visual = (p, big) => p.i
   ? `<img src="/products/${esc(p.i)}" alt="${esc(full(p))}" ${big ? '' : 'loading="lazy" decoding="async"'} width="800" height="800">`
   : `<div class="ph">${ico(CI[p.c], big ? 1 : 1.1)}<b>${esc(p.n.replace(new RegExp('^' + (p.b || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s+', 'i'), '').split(/\s+/).slice(0, 4).join(' '))}</b></div>`;
 
+const STL = { out: ['Out of stock', 'غير متوفر حالياً'], soon: ['Coming soon', 'قريباً'] };
+const stChip = (p, cls = '') => p.st && STL[p.st] ? `<span class="chip st-${p.st} ${cls}">${STL[p.st][L === 'ar' ? 1 : 0]}</span>` : '';
 const card = (p, i = 0) => `<article class="c" style="--i:${i}">
   <a class="cv" href="/product?id=${encodeURIComponent(p.id)}" aria-label="${esc(full(p))}"></a>
-  <div class="im">${visual(p)}</div>
+  <div class="im">${visual(p)}${stChip(p)}</div>
   <div class="bd"><div class="br">${esc(p.b || catN(p.c))}</div><div class="nm">${esc(p.n)}</div>${p.d ? `<div class="dt">${esc(p.d)}</div>` : ''}
   <div class="ft"><span class="cat">${esc(catN(p.c))}</span><a class="wa" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${t().enq}</a></div></div></article>`;
 
@@ -315,7 +317,7 @@ function product() {
   return `<div class="w"><div class="pdp">
     <div class="pim rv in">${visual(p, true)}</div>
     <div class="pin2"><div class="crumb rv in"><a href="/shop">${x.shop}</a><span>/</span><a href="/shop?d=${dep.id}">${dep[L]}</a><span>/</span><a href="/shop?c=${p.c}">${catN(p.c)}</a></div>
-      <div class="br rv in" style="--d:.05s">${esc(p.b || catN(p.c))}</div>
+      <div class="br rv in" style="--d:.05s">${esc(p.b || catN(p.c))}${stChip(p, 'inl')}</div>
       <h1>${lines([esc(p.n)])}</h1>
       ${p.d ? `<p class="det rv in" style="--d:.25s">${esc(p.d)}</p>` : ''}
       <div class="row rv in" style="--d:.32s"><a class="btn gd" target="_blank" rel="noopener" href="${waP(p)}">${WAI}${x.enqL}</a><a class="btn lt" href="tel:${TEL}">${x.callUs}</a></div>
@@ -349,7 +351,7 @@ function render() {
 const hd = () => $('#hd').classList.toggle('s', scrollY > 8);
 addEventListener('scroll', hd, { passive: true });
 fetch('/catalog.json').then(r => r.json()).then(j => {
-  D = j; render(); hd();
+  D = j; D.products = (D.products || []).filter(p => !p.h); render(); hd();
   if (location.hash) { const el = document.querySelector(location.hash); if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 400) }
 });
 
