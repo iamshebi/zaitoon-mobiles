@@ -3,6 +3,8 @@ const crypto = require('crypto');
 
 const ENV = () => ({
   email: (process.env.ADMIN_EMAIL || '').trim().toLowerCase(),
+  // ADMIN_EMAIL may hold several logins separated by commas: a@x.com, b@y.com
+  emails: (process.env.ADMIN_EMAIL || '').toLowerCase().split(/[\s,;]+/).filter(Boolean),
   pass: process.env.ADMIN_PASSWORD || '',
   secret: process.env.SESSION_SECRET || '',
   token: process.env.GITHUB_TOKEN || '',
@@ -25,7 +27,7 @@ function json(res, code, body) {
 }
 function configured() {
   const e = ENV();
-  return { login: !!(e.email && e.pass && e.secret.length >= 16), github: !!e.token };
+  return { login: !!(e.emails.length && e.pass && e.secret.length >= 16), github: !!e.token };
 }
 function makeSession() {
   const e = ENV(), exp = Math.floor(Date.now() / 1000) + MAX_AGE, v = `${exp}`;

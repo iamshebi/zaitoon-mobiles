@@ -11,7 +11,7 @@ Storefront for Al Zaitoon Computer & Mobile Phones, Ras Al Khaimah. Static site 
 Zaitoon edits products at **/admin** (works on phone and desktop). Saving publishes `catalog.json` (and new photos in `/products`) to this repo as one commit; Vercel redeploys automatically (~1 minute).
 
 Vercel environment variables (Production):
-- `ADMIN_EMAIL`, `ADMIN_PASSWORD` – the admin login
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD` – the admin login (several emails allowed in ADMIN_EMAIL, separated by commas; all share the one password)
 - `SESSION_SECRET` – random string (32+ chars) used to sign the login cookie
 - `GITHUB_TOKEN` – fine-grained token with **Contents: Read and write** on this repo only
 - optional: `GITHUB_REPO` (default `iamshebi/zaitoon-mobiles`), `GITHUB_BRANCH` (default `main`)
